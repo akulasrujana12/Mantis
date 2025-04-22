@@ -3,7 +3,7 @@
 //  Mantis
 //
 //  Created by Echo on 10/19/18.
-//  Copyright © 2018 Echo. All rights reserved.
+//  Copyright 2018 Echo. All rights reserved.
 //
 
 import UIKit
@@ -175,29 +175,55 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
             
             // Set up dotted line style
             context.setLineWidth(2)
-            context.setStrokeColor(UIColor.systemBlue.withAlphaComponent(0.6).cgColor)
+            context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
             let dashPattern: [CGFloat] = [4, 4]
             context.setLineDash(phase: 0, lengths: dashPattern)
 
-            // Draw face guide
-            let faceRect = CGRect(x: rect.midX - rect.width * 0.18, y: rect.midY - rect.height * 0.28, width: rect.width * 0.36, height: rect.height * 0.56)
+            // Draw face guide with aspect ratio logic
+            // For 1:1 aspect ratio (passport-like): oval from 15% to 70% of height
+            let aspectRatio = rect.width / rect.height
+            var faceTop: CGFloat = rect.height * 0.15
+            var faceBottom: CGFloat = rect.height * 0.70
+            var faceLeft: CGFloat = rect.width * 0.18
+            var faceRight: CGFloat = rect.width * 0.82
+
+            // Adjust oval for other aspect ratios if needed (future: add more logic)
+            // For now, apply the 15%-70% rule for all ratios
+
+            let faceRect = CGRect(x: faceLeft,
+                                  y: faceTop,
+                                  width: faceRight - faceLeft,
+                                  height: faceBottom - faceTop)
             let facePath = UIBezierPath(ovalIn: faceRect)
             context.addPath(facePath.cgPath)
 
             // Eyes
-            let eyeRadius = rect.width * 0.03
-            let leftEyeCenter = CGPoint(x: rect.midX - rect.width * 0.07, y: rect.midY - rect.height * 0.09)
-            let rightEyeCenter = CGPoint(x: rect.midX + rect.width * 0.07, y: rect.midY - rect.height * 0.09)
+            let eyeY = faceTop + (faceRect.height * 0.32)
+            let eyeRadius = faceRect.width * 0.07
+            let leftEyeCenter = CGPoint(x: faceRect.midX - faceRect.width * 0.18, y: eyeY)
+            let rightEyeCenter = CGPoint(x: faceRect.midX + faceRect.width * 0.18, y: eyeY)
             context.addEllipse(in: CGRect(x: leftEyeCenter.x - eyeRadius, y: leftEyeCenter.y - eyeRadius, width: eyeRadius * 2, height: eyeRadius * 2))
             context.addEllipse(in: CGRect(x: rightEyeCenter.x - eyeRadius, y: rightEyeCenter.y - eyeRadius, width: eyeRadius * 2, height: eyeRadius * 2))
 
             // Nose (vertical line)
-            context.move(to: CGPoint(x: rect.midX, y: rect.midY - rect.height * 0.06))
-            context.addLine(to: CGPoint(x: rect.midX, y: rect.midY + rect.height * 0.04))
+            let noseTop = CGPoint(x: faceRect.midX, y: eyeY + eyeRadius * 1.2)
+            let noseBottom = CGPoint(x: faceRect.midX, y: noseTop.y + faceRect.height * 0.18)
+            context.move(to: noseTop)
+            context.addLine(to: noseBottom)
 
             // Mouth (arc)
-            let mouthRect = CGRect(x: rect.midX - rect.width * 0.06, y: rect.midY + rect.height * 0.09, width: rect.width * 0.12, height: rect.height * 0.04)
+            let mouthY = faceBottom - faceRect.height * 0.16
+            let mouthRect = CGRect(x: faceRect.midX - faceRect.width * 0.15, y: mouthY, width: faceRect.width * 0.3, height: faceRect.height * 0.10)
             context.addArc(center: CGPoint(x: mouthRect.midX, y: mouthRect.midY), radius: mouthRect.width / 2, startAngle: .pi * 0.1, endAngle: .pi * 0.9, clockwise: false)
+
+            // Optionally: draw a faint body guide below chin
+            let bodyTop = faceBottom
+            let bodyBottom = rect.height * 0.95
+            let bodyRect = CGRect(x: rect.width * 0.30, y: bodyTop, width: rect.width * 0.40, height: bodyBottom - bodyTop)
+            let bodyPath = UIBezierPath(roundedRect: bodyRect, cornerRadius: bodyRect.width * 0.25)
+            context.setLineDash(phase: 0, lengths: [2, 6])
+            context.addPath(bodyPath.cgPath)
+            context.setLineDash(phase: 0, lengths: dashPattern) // Restore dash for face
 
             context.strokePath()
             context.restoreGState()
