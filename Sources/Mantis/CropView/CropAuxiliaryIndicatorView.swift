@@ -160,6 +160,10 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
 
         // Start at left shoulder bottom
         path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
+        // Extend to bottom left corner
+        path.addQuadCurve(to: CGPoint(x: 0, y: h), controlPoint: CGPoint(x: leftShoulderX - 20, y: shoulderY + 20))
+        // Move back to left shoulder bottom
+        path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
 
         // Curve up to left neck
         path.addQuadCurve(to: CGPoint(x: leftNeckX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.05, y: neckControlY))
@@ -175,6 +179,8 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
 
         // Curve down to right shoulder
         path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.05, y: neckControlY))
+        // Extend to bottom right corner
+        path.addQuadCurve(to: CGPoint(x: w, y: h), controlPoint: CGPoint(x: rightShoulderX + 20, y: shoulderY + 20))
 
         // === Draw silhouette ===
         context.setLineWidth(2)
@@ -201,7 +207,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
                 .foregroundColor: UIColor.white
             ]
             let labelSize = label.size(withAttributes: attributes)
-            label.draw(at: CGPoint(x: 10, y: y - labelSize.height - 2), withAttributes: attributes)
+            label.draw(at: CGPoint(x: 12, y: y - labelSize.height - 2), withAttributes: attributes)
         }
 
         drawDottedLine(yRatio: 0.05, label: "Top of Head")
@@ -221,7 +227,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         // === 4. Footer Label ===
         let footer = "51mmx51mm"
         let attr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
+            .font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .medium),
             .foregroundColor: UIColor.white
         ]
         let footerSize = footer.size(withAttributes: attr)
