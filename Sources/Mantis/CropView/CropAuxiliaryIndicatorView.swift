@@ -149,13 +149,13 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         // === 1. Simple oval silhouette from top-of-head to chin ===
         let path = UIBezierPath()
 
-        let topY = h * 0.28
-        let bottomY = h * 0.75
-        let ovalHeight = bottomY - topY
+        let topGuideY = h * 0.05  // Match drawDottedLine(yRatio: 0.05, label: "Top of Head")
+        let chinGuideY = h * 0.75 // Match drawDottedLine(yRatio: 0.75, label: "Chin")
+        let ovalHeight = chinGuideY - topGuideY
         let ovalWidth = ovalHeight * 0.75
         let originX = (w - ovalWidth) / 2
 
-        let ovalRect = CGRect(x: originX, y: topY, width: ovalWidth, height: ovalHeight)
+        let ovalRect = CGRect(x: originX, y: topGuideY, width: ovalWidth, height: ovalHeight)
         path.append(UIBezierPath(ovalIn: ovalRect))
 
         context.setLineWidth(2)
