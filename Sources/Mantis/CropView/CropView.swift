@@ -92,6 +92,25 @@ final class CropView: UIView {
         return activityIndicator
     }()
     
+    // MARK: - Face Guide Overlay
+    private var faceGuideOverlayView: FaceGuideOverlayView?
+
+    func showFaceGuideOverlay() {
+        if faceGuideOverlayView == nil {
+            let overlay = FaceGuideOverlayView(frame: bounds)
+            overlay.backgroundColor = .clear
+            overlay.isUserInteractionEnabled = false
+            addSubview(overlay)
+            faceGuideOverlayView = overlay
+        }
+        faceGuideOverlayView?.isHidden = false
+        bringSubviewToFront(faceGuideOverlayView!)
+    }
+
+    func hideFaceGuideOverlay() {
+        faceGuideOverlayView?.isHidden = true
+    }
+    
     deinit {
         print("CropView deinit.")
     }
@@ -128,6 +147,7 @@ final class CropView: UIView {
         }
         
         viewModel.setInitialStatus()
+        showFaceGuideOverlay()
     }
     
     required init?(coder aDecoder: NSCoder) {
