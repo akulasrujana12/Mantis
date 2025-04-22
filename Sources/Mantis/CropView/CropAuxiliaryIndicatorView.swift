@@ -144,69 +144,68 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
 
         let w = rect.width
         let h = rect.height
+        let aspectRatio = w / h
         let centerX = w / 2.0
 
-        // === 1. Simple oval silhouette from top-of-head to chin ===
+        // === 1. Proportions based on aspect ratio ===
+        var topOfHeadYRatio: CGFloat
+        var chinYRatio: CGFloat
+        var eyesYRatio: CGFloat
+        var ovalWidthRatio: CGFloat
+
+        if abs(aspectRatio - 1.0) < 0.05 {
+            // 1:1 (square)
+            topOfHeadYRatio = 0.15
+            chinYRatio = 0.70
+            eyesYRatio = 0.40
+            ovalWidthRatio = 0.75
+        } else if aspectRatio > 1.2 {
+            // Wide (landscape)
+            topOfHeadYRatio = 0.18
+            chinYRatio = 0.72
+            eyesYRatio = 0.42
+            ovalWidthRatio = 0.80
+        } else {
+            // Tall (portrait)
+            topOfHeadYRatio = 0.12
+            chinYRatio = 0.68
+            eyesYRatio = 0.38
+            ovalWidthRatio = 0.68
+        }
+
+        let topOfHeadY = h * topOfHeadYRatio
+        let chinY = h * chinYRatio
+        let eyesY = h * eyesYRatio
+        let ovalHeight = chinY - topOfHeadY
+        let ovalWidth = ovalHeight * ovalWidthRatio
+        let ovalX = (w - ovalWidth) / 2
+        let ovalRect = CGRect(x: ovalX, y: topOfHeadY, width: ovalWidth, height: ovalHeight)
+
+        // === 2. Draw head oval ===
         let path = UIBezierPath()
-
-        let topGuideY = h * 0.05  // Match drawDottedLine(yRatio: 0.05, label: "Top of Head")
-        let chinGuideY = h * 0.75 // Match drawDottedLine(yRatio: 0.75, label: "Chin")
-        let ovalHeight = chinGuideY - topGuideY
-        let ovalWidth = ovalHeight * 0.75
-        let originX = (w - ovalWidth) / 2
-
-        let ovalRect = CGRect(x: originX, y: topGuideY, width: ovalWidth, height: ovalHeight)
         path.append(UIBezierPath(ovalIn: ovalRect))
 
+        // === 3. Draw eyes ===
+        let eyeSpacing = ovalWidth * 0.35
+        let eyeRadius = ovalWidth * 0.07
+        let leftEyeCenter = CGPoint(x: centerX - eyeSpacing/2, y: eyesY)
+        let rightEyeCenter = CGPoint(x: centerX + eyeSpacing/2, y: eyesY)
+        path.append(UIBezierPath(ovalIn: CGRect(x: leftEyeCenter.x - eyeRadius, y: leftEyeCenter.y - eyeRadius, width: eyeRadius*2, height: eyeRadius*2)))
+        path.append(UIBezierPath(ovalIn: CGRect(x: rightEyeCenter.x - eyeRadius, y: rightEyeCenter.y - eyeRadius, width: eyeRadius*2, height: eyeRadius*2)))
+
+        // === 4. Draw chin (as a small arc at the bottom of the oval) ===
+        let chinArcRadius = ovalWidth * 0.24
+        let chinArcCenter = CGPoint(x: centerX, y: chinY - chinArcRadius * 0.15)
+        let chinArcStart = CGFloat.pi * 1.1
+        let chinArcEnd = CGFloat.pi * 1.9
+        path.addArc(withCenter: chinArcCenter, radius: chinArcRadius, startAngle: chinArcStart, endAngle: chinArcEnd, clockwise: true)
+
+        // === 5. Draw everything ===
         context.setLineWidth(2)
         context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
         context.setLineDash(phase: 0, lengths: [4, 4])
         context.addPath(path.cgPath)
         context.strokePath()
-
-        // === 2. Horizontal dotted lines ===
-        func drawDottedLine(yRatio: CGFloat, label: String) {
-            let y = h * yRatio
-            let linePath = UIBezierPath()
-            linePath.move(to: CGPoint(x: 0, y: y))
-            linePath.addLine(to: CGPoint(x: w, y: y))
-            context.setLineDash(phase: 0, lengths: [6, 4])
-            context.setStrokeColor(UIColor.white.cgColor)
-            context.setLineWidth(1.5)
-            context.addPath(linePath.cgPath)
-            context.strokePath()
-
-            // Label
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 12),
-                .foregroundColor: UIColor.white
-            ]
-            let labelSize = label.size(withAttributes: attributes)
-            label.draw(at: CGPoint(x: 12, y: y - labelSize.height - 2), withAttributes: attributes)
-        }
-
-        drawDottedLine(yRatio: 0.05, label: "Top of Head")
-        drawDottedLine(yRatio: 0.35, label: "Eyes")
-        drawDottedLine(yRatio: 0.75, label: "Chin")
-
-        // === 3. Vertical center line ===
-        let centerLine = UIBezierPath()
-        centerLine.move(to: CGPoint(x: centerX, y: 0))
-        centerLine.addLine(to: CGPoint(x: centerX, y: h))
-        context.setLineDash(phase: 0, lengths: [4, 4])
-        context.setLineWidth(1.0)
-        context.setStrokeColor(UIColor.white.withAlphaComponent(0.6).cgColor)
-        context.addPath(centerLine.cgPath)
-        context.strokePath()
-
-        // === 4. Footer Label ===
-        let footer = "51mmx51mm"
-        let attr: [NSAttributedString.Key: Any] = [
-            .font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .medium),
-            .foregroundColor: UIColor.white
-        ]
-        let footerSize = footer.size(withAttributes: attr)
-        footer.draw(at: CGPoint(x: (w - footerSize.width) / 2, y: h - footerSize.height - 8), withAttributes: attr)
     }
     
     private func layoutLines() {
