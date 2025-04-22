@@ -35,7 +35,10 @@ protocol CropViewDelegate: AnyObject {
 final class CropView: UIView {
     var image: UIImage
     // Store the original image for full reset functionality
-    private var originalImage: UIImage?
+    private var _originalImage: UIImage?
+    var originalImage: UIImage? {
+        get { return self._originalImage }
+    }
     
     let viewModel: CropViewModelProtocol
     
@@ -1150,9 +1153,11 @@ extension CropView: CropViewProtocol {
     }
     
     func reset() {
+        print("[CropView] reset called")
         flipOddTimes = false
         aspectRatioLockEnabled = forceFixedRatio
-        if let originalImage = self.originalImage {
+        if let originalImage = self._originalImage {
+            print("[CropView] Restoring originalImage")
             self.image = originalImage
             imageContainer.update(originalImage)
         }
@@ -1242,10 +1247,12 @@ extension CropView: CropViewProtocol {
     }
     
     func update(_ image: UIImage, asOriginal: Bool) {
+        print("[CropView] update called with asOriginal: \(asOriginal)")
         self.image = image
         imageContainer.update(image)
         if asOriginal {
-            self.originalImage = image
+            print("[CropView] Setting originalImage")
+            self._originalImage = image
         }
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         resetComponents()

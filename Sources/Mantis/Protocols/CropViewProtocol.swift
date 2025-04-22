@@ -15,6 +15,7 @@ public protocol ActivityIndicatorProtocol: UIView {
 
 protocol CropViewProtocol: UIView {
     var image: UIImage { get set }
+    var originalImage: UIImage? { get }
     var aspectRatioLockEnabled: Bool { get set }
     var delegate: CropViewDelegate? { get set }
     
