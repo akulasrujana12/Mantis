@@ -146,45 +146,18 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         let h = rect.height
         let centerX = w / 2.0
 
-        // === 1. Improved human silhouette with neck and shoulders ===
+        // === 1. Simple oval silhouette from top-of-head to chin ===
         let path = UIBezierPath()
 
-        let topY = h * 0.18
-        let chinY = h * 0.72
-        let shoulderY = h * 0.88
-        let leftNeckX = w * 0.42
-        let rightNeckX = w * 0.58
-        let leftShoulderX = w * 0.05
-        let rightShoulderX = w * 0.95
-        let neckControlY = (chinY + shoulderY) / 2
+        let topY = h * 0.28
+        let bottomY = h * 0.75
+        let ovalHeight = bottomY - topY
+        let ovalWidth = ovalHeight * 0.75
+        let originX = (w - ovalWidth) / 2
 
-        // Start at left shoulder bottom
-        path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
-        // Extend to bottom left corner
-        path.addQuadCurve(to: CGPoint(x: 0, y: h), controlPoint: CGPoint(x: leftShoulderX - 20, y: shoulderY + 20))
-        // Move back to left shoulder bottom
-        path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
+        let ovalRect = CGRect(x: originX, y: topY, width: ovalWidth, height: ovalHeight)
+        path.append(UIBezierPath(ovalIn: ovalRect))
 
-        // Curve up to left neck
-        path.addQuadCurve(to: CGPoint(x: leftNeckX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.05, y: neckControlY))
-
-        // Left neck to left temple
-        path.addQuadCurve(to: CGPoint(x: centerX - 35, y: topY + 60), controlPoint: CGPoint(x: leftNeckX - 10, y: chinY - 40))
-
-        // Smooth arc across head (oval head shape)
-        path.addCurve(to: CGPoint(x: centerX + 35, y: topY + 60),
-                      controlPoint1: CGPoint(x: centerX - 10, y: topY),
-                      controlPoint2: CGPoint(x: centerX + 10, y: topY))
-
-        // Right temple to right neck
-        path.addQuadCurve(to: CGPoint(x: rightNeckX, y: chinY), controlPoint: CGPoint(x: rightNeckX + 10, y: chinY - 40))
-
-        // Curve down to right shoulder
-        path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.05, y: neckControlY))
-        // Extend to bottom right corner
-        path.addQuadCurve(to: CGPoint(x: w, y: h), controlPoint: CGPoint(x: rightShoulderX + 20, y: shoulderY + 20))
-
-        // === Draw silhouette ===
         context.setLineWidth(2)
         context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
         context.setLineDash(phase: 0, lengths: [4, 4])
