@@ -21,6 +21,7 @@ public struct ToolbarButtonOptions: OptionSet {
     static public let horizontallyFlip = ToolbarButtonOptions(rawValue: 1 << 5)
     static public let verticallyFlip = ToolbarButtonOptions(rawValue: 1 << 6)
     static public let autoAdjust = ToolbarButtonOptions(rawValue: 1 << 7)
+    static public let backgroundRemoval = ToolbarButtonOptions(rawValue: 1 << 8)
     
     static public let `default`: ToolbarButtonOptions = [counterclockwiseRotate,
                                                          reset,
@@ -32,5 +33,11 @@ public struct ToolbarButtonOptions: OptionSet {
                                                    ratio,
                                                    alterCropper90Degree,
                                                    horizontallyFlip,
-                                                   verticallyFlip]
+                                                   verticallyFlip,
+                                                   backgroundRemoval]
+    
+    static public let photoxpress: ToolbarButtonOptions = [counterclockwiseRotate,
+                                                           reset,
+                                                           .horizontallyFlip,
+                                                            backgroundRemoval]
 }

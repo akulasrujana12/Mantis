@@ -3,7 +3,7 @@
 //  Mantis
 //
 //  Created by Echo on 10/30/18.
-//  Copyright © 2018 Echo. All rights reserved.
+//  Copyright 2018 Echo. All rights reserved.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to
@@ -580,6 +580,25 @@ extension CropViewController: CropToolbarDelegate {
     
     public func didSelectAutoAdjust(_ cropToolbar: CropToolbarProtocol?, isActive: Bool) {
         handleAutoAdjust(isActive: isActive)
+    }
+    
+    public func didSelectBackgroundRemoval(_ cropToolbar: CropToolbarProtocol?) {
+        let originalImage = self.cropView.image
+        // Only run background removal if on iOS 17+
+        if #available(iOS 17.0, *) {
+            BackgroundRemoval.removeBackground(from: originalImage) { [weak self] resultImage, error in
+                guard let self = self else { return }
+                if let resultImage = resultImage {
+                    self.cropView.update(resultImage)
+                } else if let error = error {
+                    // Optionally, show an alert to the user
+                    print("Background removal failed: \(error)")
+                }
+            }
+        } else {
+            print("Background removal requires iOS 17 or later.")
+            // Optionally, show an alert to the user here
+        }
     }
 }
 

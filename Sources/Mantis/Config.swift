@@ -3,7 +3,7 @@
 //  Mantis
 //
 //  Created by Echo on 07/07/22.
-//  Copyright © 2022 Echo. All rights reserved.
+//  Copyright 2022 Echo. All rights reserved.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to
@@ -70,6 +70,8 @@ public struct Config {
     public var enableUndoRedo: Bool = false
     
     static var language: Language?
+
+    public var backgroundRemovalColor: UIColor = .white
 
     public init() {}
 

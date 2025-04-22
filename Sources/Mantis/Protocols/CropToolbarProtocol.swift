@@ -28,6 +28,7 @@ public protocol CropToolbarDelegate: AnyObject {
     func isUndoSupported(_ cropToolbar: CropToolbarProtocol?) -> Bool
     func undoActionName(_ cropToolbar: CropToolbarProtocol?) -> String
     func redoActionName(_ cropToolbar: CropToolbarProtocol?) -> String
+    func didSelectBackgroundRemoval(_ cropToolbar: CropToolbarProtocol?)
 }
 
 public extension CropToolbarDelegate {
@@ -48,6 +49,7 @@ public extension CropToolbarDelegate {
     func redoActionName(_ cropToolbar: CropToolbarProtocol?) -> String {
         return "redo"
     }
+    func didSelectBackgroundRemoval(_ cropToolbar: CropToolbarProtocol?) {}
 }
 
 public protocol CropToolbarIconProvider: AnyObject {
@@ -61,6 +63,7 @@ public protocol CropToolbarIconProvider: AnyObject {
     func getHorizontallyFlipIcon() -> UIImage?
     func getVerticallyFlipIcon() -> UIImage?
     func getAutoAdjustIcon() -> UIImage?
+    func getBackgroundRemovalIcon() -> UIImage?
 }
 
 public extension CropToolbarIconProvider {
@@ -74,6 +77,7 @@ public extension CropToolbarIconProvider {
     func getHorizontallyFlipIcon() -> UIImage? { return nil }
     func getVerticallyFlipIcon() -> UIImage? { return nil }
     func getAutoAdjustIcon() -> UIImage? { return nil }
+    func getBackgroundRemovalIcon() -> UIImage? { return nil }
 }
 
 public protocol CropToolbarProtocol: UIView {

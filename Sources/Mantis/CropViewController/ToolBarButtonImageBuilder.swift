@@ -85,6 +85,15 @@ struct ToolBarButtonImageBuilder {
         return nil
     }
     
+    static func backgroundRemovalImage() -> UIImage? {
+        if #available(macCatalyst 13.1, iOS 13.0, *) {
+            return UIImage(systemName: "wand.and.stars")
+        }
+        
+        return nil
+    }
+    
+    
     static func verticallyFlipImage() -> UIImage? {
         if #available(macCatalyst 13.1, iOS 13.0, *) {
             guard let horizontallyFlippedImage = horizontallyFlipImage(),

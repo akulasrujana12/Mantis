@@ -3,7 +3,7 @@
 //  Mantis
 //
 //  Created by Echo on 11/6/18.
-//  Copyright © 2018 Echo. All rights reserved.
+//  Copyright 2018 Echo. All rights reserved.
 //
 
 import UIKit
@@ -70,6 +70,15 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
         button.setImage(icon, for: .normal)
         button.accessibilityIdentifier = "AutoAdjustButton"
         button.accessibilityLabel = LocalizedHelper.getString("Mantis.Auto adjust", value: "Auto adjust")
+        return button
+    }()
+
+    private lazy var backgroundRemovalButton: UIButton = {
+        let button = createOptionButton(withTitle: nil, andAction: #selector(backgroundRemoval))
+        let icon = iconProvider?.getBackgroundRemovalIcon() ?? ToolBarButtonImageBuilder.backgroundRemovalImage()
+        button.setImage(icon, for: .normal)
+        button.accessibilityIdentifier = "BackgroundRemovalButton"
+        button.accessibilityLabel = LocalizedHelper.getString("Mantis.Background Removal", value: "Remove Background")
         return button
     }()
 
@@ -160,6 +169,10 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
             addButtonsToContainer(button: autoAdjustButton)
             autoAdjustButton.isHidden = true
             autoAdjustButtonActive = false
+        }
+
+        if config.toolbarButtonOptions.contains(.backgroundRemoval) {
+            addButtonsToContainer(button: backgroundRemovalButton)
         }
 
         if config.toolbarButtonOptions.contains(.reset) {
@@ -273,6 +286,10 @@ extension CropToolbar {
     @objc private func autoAdjust(_ sender: Any) {
         autoAdjustButtonActive.toggle()
         delegate?.didSelectAutoAdjust(self, isActive: autoAdjustButtonActive)
+    }
+
+    @objc private func backgroundRemoval(_ sender: Any) {
+        delegate?.didSelectBackgroundRemoval(self)
     }
 
     @objc private func crop(_ sender: Any) {
