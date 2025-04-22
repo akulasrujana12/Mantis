@@ -107,6 +107,8 @@ private func buildCropView(withImage image: UIImage,
                             cropWorkbenchView: buildCropWorkbenchView(with: cropViewConfig, and: imageContainer),
                             cropMaskViewManager: buildCropMaskViewManager(with: cropViewConfig))
     
+    cropView.update(image, asOriginal: true)
+    
     setupRotationControlViewIfNeeded(withConfig: cropViewConfig, cropView: cropView, rotationControlView: rotationControlView)
     return cropView
 }
