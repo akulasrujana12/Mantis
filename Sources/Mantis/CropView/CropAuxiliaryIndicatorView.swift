@@ -140,82 +140,88 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
     }
     
     override func draw(_ rect: CGRect) {
-        if style == .transparent {
-            return
-        }
-        
-        if !gridHidden {
-            let indicatorLineNumber = gridLineNumberType.getIndicatorLineNumber()
-            
-            for index in 0..<indicatorLineNumber {
-                if gridLineNumberType == .rotate && (index + 1) % 3 != 0 {
-                    gridSecondaryColor.setStroke()
-                } else {
-                    gridMainColor.setStroke()
-                }
-                
-                let indicatorLinePath = UIBezierPath()
-                indicatorLinePath.lineWidth = 1
-                
-                let horizontalY = CGFloat(index + 1) * frame.height / CGFloat(indicatorLineNumber + 1)
-                indicatorLinePath.move(to: CGPoint(x: 0, y: horizontalY))
-                indicatorLinePath.addLine(to: CGPoint(x: frame.width, y: horizontalY))
-                
-                let horizontalX = CGFloat(index + 1) * frame.width / CGFloat(indicatorLineNumber + 1)
-                indicatorLinePath.move(to: CGPoint(x: horizontalX, y: 0))
-                indicatorLinePath.addLine(to: CGPoint(x: horizontalX, y: frame.height))
-                
-                indicatorLinePath.stroke()
-            }
-        }
-        
-        if showFaceGuide {
-            guard let context = UIGraphicsGetCurrentContext() else { return }
-            context.saveGState()
-            
-            // Draw a continuous dotted outline for the head, jaw, and shoulders (no horizontal lines)
-            let path = UIBezierPath()
-            let w = rect.width
-            let h = rect.height
-            // Proportions
-            let topHeadY = h * 0.18
-            let chinY = h * 0.70
-            let leftJawX = w * 0.28
-            let rightJawX = w * 0.72
-            let leftShoulderX = w * 0.10
-            let rightShoulderX = w * 0.90
-            let shoulderY = h * 0.88
-            let controlY = (chinY + shoulderY) / 2
-            let centerX = w / 2.0
-            let radiusX = (rightJawX - leftJawX) / 2.0
-            let radiusY = (chinY - topHeadY) / 1.18
+        guard showFaceGuide, let context = UIGraphicsGetCurrentContext() else { return }
 
-            // Start at left shoulder
-            path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
-            // Left shoulder to left jaw
-            path.addQuadCurve(to: CGPoint(x: leftJawX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.04, y: controlY + h * 0.07))
-            // Jaw up to left temple
-            path.addQuadCurve(to: CGPoint(x: centerX - radiusX, y: topHeadY + radiusY * 0.25), controlPoint: CGPoint(x: leftJawX - w * 0.05, y: chinY - h * 0.12))
-            // Skull: left temple over top of head to right temple
-            path.addArc(withCenter: CGPoint(x: centerX, y: topHeadY + radiusY * 0.25), radius: radiusX, startAngle: .pi, endAngle: 0, clockwise: true)
-            // Right temple to right jaw
-            path.addQuadCurve(to: CGPoint(x: rightJawX, y: chinY), controlPoint: CGPoint(x: rightJawX + w * 0.05, y: chinY - h * 0.12))
-            // Right jaw to right shoulder
-            path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.04, y: controlY + h * 0.07))
+        let w = rect.width
+        let h = rect.height
+        let centerX = w / 2.0
 
-            // Optionally extend to bottom corners for a more open shoulder look
-            path.addLine(to: CGPoint(x: w, y: h))
-            path.move(to: CGPoint(x: 0, y: h))
-            path.addLine(to: CGPoint(x: leftShoulderX, y: shoulderY))
+        // === 1. Dotted silhouette path ===
+        let path = UIBezierPath()
 
-            context.setLineWidth(2)
-            context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
-            let dashPattern: [CGFloat] = [4, 4]
-            context.setLineDash(phase: 0, lengths: dashPattern)
-            context.addPath(path.cgPath)
+        let topY = h * 0.18
+        let chinY = h * 0.72
+        let shoulderY = h * 0.87
+        let leftShoulderX = w * 0.10
+        let rightShoulderX = w * 0.90
+        let leftJawX = w * 0.30
+        let rightJawX = w * 0.70
+        let controlY = (chinY + shoulderY) / 2
+
+        // Left shoulder to jaw
+        path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
+        path.addQuadCurve(to: CGPoint(x: leftJawX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.05, y: controlY))
+
+        // Left jaw to top
+        path.addQuadCurve(to: CGPoint(x: centerX - 40, y: topY + 20), controlPoint: CGPoint(x: leftJawX - 20, y: chinY - 60))
+
+        // Arc over head
+        path.addArc(withCenter: CGPoint(x: centerX, y: topY + 20), radius: 40, startAngle: .pi, endAngle: 0, clockwise: true)
+
+        // Right side
+        path.addQuadCurve(to: CGPoint(x: rightJawX, y: chinY), controlPoint: CGPoint(x: rightJawX + 20, y: chinY - 60))
+        path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.05, y: controlY))
+
+        // === Draw silhouette ===
+        context.setLineWidth(2)
+        context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
+        context.setLineDash(phase: 0, lengths: [4, 4])
+        context.addPath(path.cgPath)
+        context.strokePath()
+
+        // === 2. Horizontal dotted lines ===
+        func drawDottedLine(yRatio: CGFloat, label: String) {
+            let y = h * yRatio
+            let linePath = UIBezierPath()
+            linePath.move(to: CGPoint(x: 0, y: y))
+            linePath.addLine(to: CGPoint(x: w, y: y))
+            context.setLineDash(phase: 0, lengths: [6, 4])
+            context.setStrokeColor(UIColor.white.cgColor)
+            context.setLineWidth(1.5)
+            context.addPath(linePath.cgPath)
             context.strokePath()
-            context.restoreGState()
+
+            // Label
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 12),
+                .foregroundColor: UIColor.white
+            ]
+            let labelSize = label.size(withAttributes: attributes)
+            label.draw(at: CGPoint(x: 10, y: y - labelSize.height - 2), withAttributes: attributes)
         }
+
+        drawDottedLine(yRatio: 0.28, label: "Top of Head")
+        drawDottedLine(yRatio: 0.60, label: "Eyes")
+        drawDottedLine(yRatio: 0.72, label: "Chin")
+
+        // === 3. Vertical center line ===
+        let centerLine = UIBezierPath()
+        centerLine.move(to: CGPoint(x: centerX, y: 0))
+        centerLine.addLine(to: CGPoint(x: centerX, y: h))
+        context.setLineDash(phase: 0, lengths: [4, 4])
+        context.setLineWidth(1.0)
+        context.setStrokeColor(UIColor.white.withAlphaComponent(0.6).cgColor)
+        context.addPath(centerLine.cgPath)
+        context.strokePath()
+
+        // === 4. Footer Label ===
+        let footer = "Passport Photo"
+        let attr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
+            .foregroundColor: UIColor.white
+        ]
+        let footerSize = footer.size(withAttributes: attr)
+        footer.draw(at: CGPoint(x: (w - footerSize.width) / 2, y: h - footerSize.height - 8), withAttributes: attr)
     }
     
     private func layoutLines() {
