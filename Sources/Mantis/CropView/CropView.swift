@@ -96,19 +96,11 @@ final class CropView: UIView {
     private var faceGuideOverlayView: FaceGuideOverlayView?
 
     func showFaceGuideOverlay() {
-        if faceGuideOverlayView == nil {
-            let overlay = FaceGuideOverlayView(frame: bounds)
-            overlay.backgroundColor = .clear
-            overlay.isUserInteractionEnabled = false
-            insertSubview(overlay, at: 0)
-            faceGuideOverlayView = overlay
-        }
-        faceGuideOverlayView?.isHidden = false
-        bringSubviewToFront(faceGuideOverlayView!)
+        cropAuxiliaryIndicatorView.showFaceGuide = true
     }
 
     func hideFaceGuideOverlay() {
-        faceGuideOverlayView?.isHidden = true
+        cropAuxiliaryIndicatorView.showFaceGuide = false
     }
     
     deinit {
@@ -169,6 +161,7 @@ final class CropView: UIView {
         setupCropWorkbenchView()
         setupCropAuxiliaryIndicatorView()
         checkImageStatusChanged()
+        showFaceGuideOverlay()
     }
     
     private func render(by viewStatus: CropViewStatus) {
