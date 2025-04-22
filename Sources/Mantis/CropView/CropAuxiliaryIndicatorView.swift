@@ -187,41 +187,62 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
             var faceLeft: CGFloat = rect.width * 0.18
             var faceRight: CGFloat = rect.width * 0.82
 
-            // Adjust oval for other aspect ratios if needed (future: add more logic)
-            // For now, apply the 15%-70% rule for all ratios
-
-            let faceRect = CGRect(x: faceLeft,
+            // For oval, make width slightly less than height for a more realistic face shape
+            let faceWidth = faceRight - faceLeft
+            let faceHeight = faceBottom - faceTop
+            let ovalRect = CGRect(x: faceLeft + faceWidth * 0.07, // narrower than before
                                   y: faceTop,
-                                  width: faceRight - faceLeft,
-                                  height: faceBottom - faceTop)
-            let facePath = UIBezierPath(ovalIn: faceRect)
+                                  width: faceWidth * 0.86, // oval, not circle
+                                  height: faceHeight)
+            let facePath = UIBezierPath(ovalIn: ovalRect)
             context.addPath(facePath.cgPath)
 
             // Eyes
-            let eyeY = faceTop + (faceRect.height * 0.32)
-            let eyeRadius = faceRect.width * 0.07
-            let leftEyeCenter = CGPoint(x: faceRect.midX - faceRect.width * 0.18, y: eyeY)
-            let rightEyeCenter = CGPoint(x: faceRect.midX + faceRect.width * 0.18, y: eyeY)
-            context.addEllipse(in: CGRect(x: leftEyeCenter.x - eyeRadius, y: leftEyeCenter.y - eyeRadius, width: eyeRadius * 2, height: eyeRadius * 2))
-            context.addEllipse(in: CGRect(x: rightEyeCenter.x - eyeRadius, y: rightEyeCenter.y - eyeRadius, width: eyeRadius * 2, height: eyeRadius * 2))
+            let eyeY = ovalRect.minY + ovalRect.height * 0.32
+            let eyeRadiusX = ovalRect.width * 0.08
+            let eyeRadiusY = ovalRect.height * 0.08
+            let leftEyeCenter = CGPoint(x: ovalRect.midX - ovalRect.width * 0.18, y: eyeY)
+            let rightEyeCenter = CGPoint(x: ovalRect.midX + ovalRect.width * 0.18, y: eyeY)
+            let leftEyeRect = CGRect(x: leftEyeCenter.x - eyeRadiusX, y: leftEyeCenter.y - eyeRadiusY, width: eyeRadiusX * 2, height: eyeRadiusY * 2)
+            let rightEyeRect = CGRect(x: rightEyeCenter.x - eyeRadiusX, y: rightEyeCenter.y - eyeRadiusY, width: eyeRadiusX * 2, height: eyeRadiusY * 2)
+            context.addEllipse(in: leftEyeRect)
+            context.addEllipse(in: rightEyeRect)
 
             // Nose (vertical line)
-            let noseTop = CGPoint(x: faceRect.midX, y: eyeY + eyeRadius * 1.2)
-            let noseBottom = CGPoint(x: faceRect.midX, y: noseTop.y + faceRect.height * 0.18)
+            let noseTop = CGPoint(x: ovalRect.midX, y: eyeY + eyeRadiusY * 1.3)
+            let noseBottom = CGPoint(x: ovalRect.midX, y: noseTop.y + ovalRect.height * 0.18)
             context.move(to: noseTop)
             context.addLine(to: noseBottom)
 
             // Mouth (arc)
-            let mouthY = faceBottom - faceRect.height * 0.16
-            let mouthRect = CGRect(x: faceRect.midX - faceRect.width * 0.15, y: mouthY, width: faceRect.width * 0.3, height: faceRect.height * 0.10)
+            let mouthY = ovalRect.maxY - ovalRect.height * 0.18
+            let mouthRect = CGRect(x: ovalRect.midX - ovalRect.width * 0.15, y: mouthY, width: ovalRect.width * 0.3, height: ovalRect.height * 0.10)
             context.addArc(center: CGPoint(x: mouthRect.midX, y: mouthRect.midY), radius: mouthRect.width / 2, startAngle: .pi * 0.1, endAngle: .pi * 0.9, clockwise: false)
 
-            // Optionally: draw a faint body guide below chin
-            let bodyTop = faceBottom
-            let bodyBottom = rect.height * 0.95
-            let bodyRect = CGRect(x: rect.width * 0.30, y: bodyTop, width: rect.width * 0.40, height: bodyBottom - bodyTop)
-            let bodyPath = UIBezierPath(roundedRect: bodyRect, cornerRadius: bodyRect.width * 0.25)
+            // Shoulders/body: draw two arcs for shoulders and a trapezoid for body
+            let shoulderY = ovalRect.maxY + (rect.height * 0.01)
+            let shoulderRadius = ovalRect.width * 0.45
+            let leftShoulderCenter = CGPoint(x: ovalRect.midX - ovalRect.width * 0.32, y: shoulderY)
+            let rightShoulderCenter = CGPoint(x: ovalRect.midX + ovalRect.width * 0.32, y: shoulderY)
             context.setLineDash(phase: 0, lengths: [2, 6])
+            // Left shoulder arc
+            context.addArc(center: leftShoulderCenter, radius: shoulderRadius, startAngle: .pi * 1.1, endAngle: .pi * 1.6, clockwise: false)
+            // Right shoulder arc
+            context.addArc(center: rightShoulderCenter, radius: shoulderRadius, startAngle: .pi * 1.4, endAngle: .pi * 1.9, clockwise: false)
+
+            // Body (trapezoid)
+            let bodyTopY = shoulderY + ovalRect.height * 0.05
+            let bodyBottomY = rect.height * 0.95
+            let bodyTopLeft = CGPoint(x: ovalRect.midX - ovalRect.width * 0.40, y: bodyTopY)
+            let bodyTopRight = CGPoint(x: ovalRect.midX + ovalRect.width * 0.40, y: bodyTopY)
+            let bodyBottomLeft = CGPoint(x: ovalRect.midX - ovalRect.width * 0.25, y: bodyBottomY)
+            let bodyBottomRight = CGPoint(x: ovalRect.midX + ovalRect.width * 0.25, y: bodyBottomY)
+            let bodyPath = UIBezierPath()
+            bodyPath.move(to: bodyTopLeft)
+            bodyPath.addLine(to: bodyTopRight)
+            bodyPath.addLine(to: bodyBottomRight)
+            bodyPath.addLine(to: bodyBottomLeft)
+            bodyPath.close()
             context.addPath(bodyPath.cgPath)
             context.setLineDash(phase: 0, lengths: dashPattern) // Restore dash for face
 
