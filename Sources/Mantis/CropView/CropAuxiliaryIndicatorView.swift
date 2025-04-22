@@ -170,7 +170,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
 
         // Right side
         path.addQuadCurve(to: CGPoint(x: rightJawX, y: chinY), controlPoint: CGPoint(x: rightJawX + 20, y: chinY - 60))
-        path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.05, y: controlY))
+        path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.10, y: controlY))
 
         // === Draw silhouette ===
         context.setLineWidth(2)
@@ -200,8 +200,8 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
             label.draw(at: CGPoint(x: 10, y: y - labelSize.height - 2), withAttributes: attributes)
         }
 
-        drawDottedLine(yRatio: 0.28, label: "Top of Head")
-        drawDottedLine(yRatio: 0.60, label: "Eyes")
+        drawDottedLine(yRatio: 0.10, label: "Top of Head")
+        drawDottedLine(yRatio: 0.30, label: "Eyes")
         drawDottedLine(yRatio: 0.72, label: "Chin")
 
         // === 3. Vertical center line ===
@@ -215,7 +215,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         context.strokePath()
 
         // === 4. Footer Label ===
-        let footer = "Passport Photo"
+        let footer = "51mmx51mm"
         let attr: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14, weight: .semibold),
             .foregroundColor: UIColor.white
