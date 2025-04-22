@@ -101,6 +101,7 @@ final class CropView: UIView {
             overlay.backgroundColor = .clear
             overlay.isUserInteractionEnabled = false
             addSubview(overlay)
+            bringSubviewToFront(overlay)
             faceGuideOverlayView = overlay
         }
         faceGuideOverlayView?.isHidden = false
