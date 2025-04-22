@@ -590,6 +590,7 @@ extension CropViewController: CropToolbarDelegate {
                 guard let self = self else { return }
                 if let resultImage = resultImage {
                     self.cropView.update(resultImage)
+                    self.cropViewDidBecomeResettable(self.cropView)
                 } else if let error = error {
                     // Optionally, show an alert to the user
                     print("Background removal failed: \(error)")
