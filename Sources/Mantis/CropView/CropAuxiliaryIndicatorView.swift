@@ -173,79 +173,46 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
             guard let context = UIGraphicsGetCurrentContext() else { return }
             context.saveGState()
             
-            // Set up dotted line style
+            // Draw a continuous dotted outline for the head, jaw, and shoulders (no horizontal lines)
+            let path = UIBezierPath()
+            let w = rect.width
+            let h = rect.height
+            // Proportions
+            let topHeadY = h * 0.18
+            let chinY = h * 0.70
+            let leftJawX = w * 0.28
+            let rightJawX = w * 0.72
+            let leftShoulderX = w * 0.10
+            let rightShoulderX = w * 0.90
+            let shoulderY = h * 0.88
+            let controlY = (chinY + shoulderY) / 2
+            let centerX = w / 2.0
+            let radiusX = (rightJawX - leftJawX) / 2.0
+            let radiusY = (chinY - topHeadY) / 1.18
+
+            // Start at left shoulder
+            path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
+            // Left shoulder to left jaw
+            path.addQuadCurve(to: CGPoint(x: leftJawX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.04, y: controlY + h * 0.07))
+            // Jaw up to left temple
+            path.addQuadCurve(to: CGPoint(x: centerX - radiusX, y: topHeadY + radiusY * 0.25), controlPoint: CGPoint(x: leftJawX - w * 0.05, y: chinY - h * 0.12))
+            // Skull: left temple over top of head to right temple
+            path.addArc(withCenter: CGPoint(x: centerX, y: topHeadY + radiusY * 0.25), radius: radiusX, startAngle: .pi, endAngle: 0, clockwise: true)
+            // Right temple to right jaw
+            path.addQuadCurve(to: CGPoint(x: rightJawX, y: chinY), controlPoint: CGPoint(x: rightJawX + w * 0.05, y: chinY - h * 0.12))
+            // Right jaw to right shoulder
+            path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.04, y: controlY + h * 0.07))
+
+            // Optionally extend to bottom corners for a more open shoulder look
+            path.addLine(to: CGPoint(x: w, y: h))
+            path.move(to: CGPoint(x: 0, y: h))
+            path.addLine(to: CGPoint(x: leftShoulderX, y: shoulderY))
+
             context.setLineWidth(2)
             context.setStrokeColor(UIColor.white.withAlphaComponent(0.9).cgColor)
             let dashPattern: [CGFloat] = [4, 4]
             context.setLineDash(phase: 0, lengths: dashPattern)
-
-            // Draw face guide with aspect ratio logic
-            // For 1:1 aspect ratio (passport-like): oval from 15% to 70% of height
-            let aspectRatio = rect.width / rect.height
-            var faceTop: CGFloat = rect.height * 0.15
-            var faceBottom: CGFloat = rect.height * 0.70
-            var faceLeft: CGFloat = rect.width * 0.18
-            var faceRight: CGFloat = rect.width * 0.82
-
-            // For oval, make width slightly less than height for a more realistic face shape
-            let faceWidth = faceRight - faceLeft
-            let faceHeight = faceBottom - faceTop
-            let ovalRect = CGRect(x: faceLeft + faceWidth * 0.07, // narrower than before
-                                  y: faceTop,
-                                  width: faceWidth * 0.86, // oval, not circle
-                                  height: faceHeight)
-            let facePath = UIBezierPath(ovalIn: ovalRect)
-            context.addPath(facePath.cgPath)
-
-            // Eyes
-            let eyeY = ovalRect.minY + ovalRect.height * 0.32
-            let eyeRadiusX = ovalRect.width * 0.08
-            let eyeRadiusY = ovalRect.height * 0.08
-            let leftEyeCenter = CGPoint(x: ovalRect.midX - ovalRect.width * 0.18, y: eyeY)
-            let rightEyeCenter = CGPoint(x: ovalRect.midX + ovalRect.width * 0.18, y: eyeY)
-            let leftEyeRect = CGRect(x: leftEyeCenter.x - eyeRadiusX, y: leftEyeCenter.y - eyeRadiusY, width: eyeRadiusX * 2, height: eyeRadiusY * 2)
-            let rightEyeRect = CGRect(x: rightEyeCenter.x - eyeRadiusX, y: rightEyeCenter.y - eyeRadiusY, width: eyeRadiusX * 2, height: eyeRadiusY * 2)
-            context.addEllipse(in: leftEyeRect)
-            context.addEllipse(in: rightEyeRect)
-
-            // Nose (vertical line)
-            let noseTop = CGPoint(x: ovalRect.midX, y: eyeY + eyeRadiusY * 1.3)
-            let noseBottom = CGPoint(x: ovalRect.midX, y: noseTop.y + ovalRect.height * 0.18)
-            context.move(to: noseTop)
-            context.addLine(to: noseBottom)
-
-            // Mouth (arc)
-            let mouthY = ovalRect.maxY - ovalRect.height * 0.18
-            let mouthRect = CGRect(x: ovalRect.midX - ovalRect.width * 0.15, y: mouthY, width: ovalRect.width * 0.3, height: ovalRect.height * 0.10)
-            context.addArc(center: CGPoint(x: mouthRect.midX, y: mouthRect.midY), radius: mouthRect.width / 2, startAngle: .pi * 0.1, endAngle: .pi * 0.9, clockwise: false)
-
-            // Shoulders/body: draw two arcs for shoulders and a trapezoid for body
-            let shoulderY = ovalRect.maxY + (rect.height * 0.01)
-            let shoulderRadius = ovalRect.width * 0.45
-            let leftShoulderCenter = CGPoint(x: ovalRect.midX - ovalRect.width * 0.32, y: shoulderY)
-            let rightShoulderCenter = CGPoint(x: ovalRect.midX + ovalRect.width * 0.32, y: shoulderY)
-            context.setLineDash(phase: 0, lengths: [2, 6])
-            // Left shoulder arc
-            context.addArc(center: leftShoulderCenter, radius: shoulderRadius, startAngle: .pi * 1.1, endAngle: .pi * 1.6, clockwise: false)
-            // Right shoulder arc
-            context.addArc(center: rightShoulderCenter, radius: shoulderRadius, startAngle: .pi * 1.4, endAngle: .pi * 1.9, clockwise: false)
-
-            // Body (trapezoid)
-            let bodyTopY = shoulderY + ovalRect.height * 0.05
-            let bodyBottomY = rect.height * 0.95
-            let bodyTopLeft = CGPoint(x: ovalRect.midX - ovalRect.width * 0.40, y: bodyTopY)
-            let bodyTopRight = CGPoint(x: ovalRect.midX + ovalRect.width * 0.40, y: bodyTopY)
-            let bodyBottomLeft = CGPoint(x: ovalRect.midX - ovalRect.width * 0.25, y: bodyBottomY)
-            let bodyBottomRight = CGPoint(x: ovalRect.midX + ovalRect.width * 0.25, y: bodyBottomY)
-            let bodyPath = UIBezierPath()
-            bodyPath.move(to: bodyTopLeft)
-            bodyPath.addLine(to: bodyTopRight)
-            bodyPath.addLine(to: bodyBottomRight)
-            bodyPath.addLine(to: bodyBottomLeft)
-            bodyPath.close()
-            context.addPath(bodyPath.cgPath)
-            context.setLineDash(phase: 0, lengths: dashPattern) // Restore dash for face
-
+            context.addPath(path.cgPath)
             context.strokePath()
             context.restoreGState()
         }
