@@ -149,28 +149,24 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         // === 1. Dotted silhouette path ===
         let path = UIBezierPath()
 
-        let topY = h * 0.18
-        let chinY = h * 0.72
-        let shoulderY = h * 0.87
-        let leftShoulderX = w * 0.10
-        let rightShoulderX = w * 0.90
-        let leftJawX = w * 0.30
-        let rightJawX = w * 0.70
-        let controlY = (chinY + shoulderY) / 2
+        let headCenter = CGPoint(x: centerX, y: h * 0.25)
+        let headRadius = w * 0.12
+        path.addArc(withCenter: headCenter, radius: headRadius, startAngle: .pi, endAngle: .pi * 2, clockwise: true)
 
-        // Left shoulder to jaw
-        path.move(to: CGPoint(x: leftShoulderX, y: shoulderY))
-        path.addQuadCurve(to: CGPoint(x: leftJawX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.05, y: controlY))
+        // Neck points
+        let neckTopLeft = CGPoint(x: centerX - headRadius * 0.5, y: headCenter.y + headRadius)
+        let neckTopRight = CGPoint(x: centerX + headRadius * 0.5, y: headCenter.y + headRadius)
+        let neckBottomLeft = CGPoint(x: centerX - w * 0.08, y: h * 0.58)
+        let neckBottomRight = CGPoint(x: centerX + w * 0.08, y: h * 0.58)
 
-        // Left jaw to top
-        path.addQuadCurve(to: CGPoint(x: centerX - 40, y: topY + 20), controlPoint: CGPoint(x: leftJawX - 20, y: chinY - 60))
+        // Connect neck
+        path.move(to: neckTopLeft)
+        path.addLine(to: neckBottomLeft)
+        path.addQuadCurve(to: CGPoint(x: 0, y: h), controlPoint: CGPoint(x: centerX - w * 0.3, y: h * 0.72))
 
-        // Arc over head
-        path.addArc(withCenter: CGPoint(x: centerX, y: topY + 20), radius: 40, startAngle: .pi, endAngle: 0, clockwise: true)
-
-        // Right side
-        path.addQuadCurve(to: CGPoint(x: rightJawX, y: chinY), controlPoint: CGPoint(x: rightJawX + 20, y: chinY - 60))
-        path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.10, y: controlY))
+        path.move(to: neckTopRight)
+        path.addLine(to: neckBottomRight)
+        path.addQuadCurve(to: CGPoint(x: w, y: h), controlPoint: CGPoint(x: centerX + w * 0.3, y: h * 0.72))
 
         // === Draw silhouette ===
         context.setLineWidth(2)
@@ -202,7 +198,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
 
         drawDottedLine(yRatio: 0.05, label: "Top of Head")
         drawDottedLine(yRatio: 0.35, label: "Eyes")
-        drawDottedLine(yRatio: 0.65, label: "Chin")
+        drawDottedLine(yRatio: 0.75, label: "Chin")
 
         // === 3. Vertical center line ===
         let centerLine = UIBezierPath()
