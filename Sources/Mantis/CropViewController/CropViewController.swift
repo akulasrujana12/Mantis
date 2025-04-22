@@ -34,6 +34,7 @@ open class CropViewController: UIViewController {
         }
     }
     
+    // Use protocol type but now protocol supports update(_:asOriginal:)
     var cropView: CropViewProtocol! {
         didSet {
             if config.cropToolbarConfig.toolbarButtonOptions.contains(.autoAdjust) {
@@ -589,7 +590,8 @@ extension CropViewController: CropToolbarDelegate {
             BackgroundRemoval.removeBackground(from: originalImage) { [weak self] resultImage, error in
                 guard let self = self else { return }
                 if let resultImage = resultImage {
-                    self.cropView.update(resultImage)
+                    // Do NOT set as original, so reset brings back the true original
+                    self.cropView.update(resultImage, asOriginal: false)
                     self.cropViewDidBecomeResettable(self.cropView)
                 } else if let error = error {
                     // Optionally, show an alert to the user

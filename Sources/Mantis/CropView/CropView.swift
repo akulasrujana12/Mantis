@@ -3,7 +3,7 @@
 //  Mantis
 //
 //  Created by Echo on 10/20/18.
-//  Copyright © 2018 Echo. All rights reserved.
+//  Copyright 2018 Echo. All rights reserved.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to
@@ -34,6 +34,8 @@ protocol CropViewDelegate: AnyObject {
 
 final class CropView: UIView {
     var image: UIImage
+    // Store the original image for full reset functionality
+    private var originalImage: UIImage?
     
     let viewModel: CropViewModelProtocol
     
@@ -1150,6 +1152,10 @@ extension CropView: CropViewProtocol {
     func reset() {
         flipOddTimes = false
         aspectRatioLockEnabled = forceFixedRatio
+        if let originalImage = self.originalImage {
+            self.image = originalImage
+            imageContainer.update(originalImage)
+        }
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         
         resetComponents()
@@ -1233,6 +1239,16 @@ extension CropView: CropViewProtocol {
     func update(_ image: UIImage) {
         self.image = image
         imageContainer.update(image)
+    }
+    
+    func update(_ image: UIImage, asOriginal: Bool) {
+        self.image = image
+        imageContainer.update(image)
+        if asOriginal {
+            self.originalImage = image
+        }
+        viewModel.reset(forceFixedRatio: forceFixedRatio)
+        resetComponents()
     }
 }
 
