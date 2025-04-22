@@ -200,9 +200,9 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
             label.draw(at: CGPoint(x: 10, y: y - labelSize.height - 2), withAttributes: attributes)
         }
 
-        drawDottedLine(yRatio: 0.10, label: "Top of Head")
-        drawDottedLine(yRatio: 0.30, label: "Eyes")
-        drawDottedLine(yRatio: 0.72, label: "Chin")
+        drawDottedLine(yRatio: 0.08, label: "Top of Head")
+        drawDottedLine(yRatio: 0.35, label: "Eyes")
+        drawDottedLine(yRatio: 0.57, label: "Chin")
 
         // === 3. Vertical center line ===
         let centerLine = UIBezierPath()
