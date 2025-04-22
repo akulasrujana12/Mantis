@@ -11,9 +11,11 @@ import UIKit
 class FakeCropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtocol {
     var cropBoxHotAreaUnit: CGFloat = 42
     
-    var gridLineNumberType: GridLineNumberType = .none
+    var gridLineNumberType: GridLineNumberType = .crop
     
-    var gridHidden = false
+    var gridHidden: Bool = true
+    
+    var showFaceGuide: Bool = true
     
     func setGrid(hidden: Bool, animated: Bool) {
         

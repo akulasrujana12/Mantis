@@ -93,8 +93,7 @@ final class CropView: UIView {
     }()
     
     // MARK: - Face Guide Overlay
-    private var faceGuideOverlayView: FaceGuideOverlayView?
-
+   
     func showFaceGuideOverlay() {
         cropAuxiliaryIndicatorView.showFaceGuide = true
     }
@@ -1269,20 +1268,6 @@ extension CropView: CropViewProtocol {
         }
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         resetComponents()
-    }
-}
-
-extension CropView {
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        print("[CropView] layoutSubviews called. bounds: \(bounds)")
-        if let overlay = faceGuideOverlayView {
-            overlay.frame = bounds
-            overlay.setNeedsDisplay()
-            print("[CropView] Updated faceGuideOverlayView frame to: \(bounds)")
-        } else {
-            print("[CropView] faceGuideOverlayView is nil in layoutSubviews")
-        }
     }
 }
 

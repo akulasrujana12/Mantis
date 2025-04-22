@@ -28,6 +28,7 @@ protocol CropAuxiliaryIndicatorViewProtocol: UIView {
     var gridLineNumberType: GridLineNumberType { get set }
     var gridHidden: Bool { get set }
     var cropBoxHotAreaUnit: CGFloat { get set }
+    var showFaceGuide: Bool { get set }
     
     func handleIndicatorHandleTouched(with tappedEdge: CropViewAuxiliaryIndicatorHandleType)
     func handleEdgeUntouched()

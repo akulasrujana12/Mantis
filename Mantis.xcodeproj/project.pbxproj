@@ -23,7 +23,6 @@
 /* Begin PBXBuildFile section */
 		269AF94227437EE400F7FAF6 /* RotationDialConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269AF94127437EE400F7FAF6 /* RotationDialConfig.swift */; };
 		5ABCE6F82DB80FE400B0952D /* BackgroundRemoval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ABCE6F72DB80FE400B0952D /* BackgroundRemoval.swift */; };
-		5ABCE6FA2DB83DDB00B0952D /* FaceGuideOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5ABCE6F92DB83DDB00B0952D /* FaceGuideOverlayView.swift */; };
 		5F17E40A253535F300A3EB7D /* Orientation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F17E409253535F300A3EB7D /* Orientation.swift */; };
 		5F69CC5E26C0629400568B75 /* Definition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F69CC5D26C0629400568B75 /* Definition.swift */; };
 		5F7D22AE245BCA8D0015A0D5 /* CropToolbarProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F7D22AD245BCA8D0015A0D5 /* CropToolbarProtocol.swift */; };
@@ -150,7 +149,6 @@
 /* Begin PBXFileReference section */
 		269AF94127437EE400F7FAF6 /* RotationDialConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotationDialConfig.swift; sourceTree = "<group>"; };
 		5ABCE6F72DB80FE400B0952D /* BackgroundRemoval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRemoval.swift; sourceTree = "<group>"; };
-		5ABCE6F92DB83DDB00B0952D /* FaceGuideOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceGuideOverlayView.swift; sourceTree = "<group>"; };
 		5F17E409253535F300A3EB7D /* Orientation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Orientation.swift; sourceTree = "<group>"; };
 		5F69CC5D26C0629400568B75 /* Definition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Definition.swift; sourceTree = "<group>"; };
 		5F7D22AD245BCA8D0015A0D5 /* CropToolbarProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CropToolbarProtocol.swift; sourceTree = "<group>"; };
@@ -375,7 +373,6 @@
 		OBJ_11 /* CropView */ = {
 			isa = PBXGroup;
 			children = (
-				5ABCE6F92DB83DDB00B0952D /* FaceGuideOverlayView.swift */,
 				OBJ_12 /* CropBoxFreeAspectFrameUpdater.swift */,
 				OBJ_13 /* CropBoxLockedAspectFrameUpdater.swift */,
 				OBJ_14 /* CropMaskViewManager.swift */,
@@ -768,7 +765,6 @@
 				66100E11294BAEB6001C8593 /* CropScrollViewProtocol.swift in Sources */,
 				F2D700392DA1B8630063EE6C /* ImageCropper.swift in Sources */,
 				OBJ_72 /* CropAuxiliaryIndicatorView.swift in Sources */,
-				5ABCE6FA2DB83DDB00B0952D /* FaceGuideOverlayView.swift in Sources */,
 				OBJ_73 /* CropWorkbenchView.swift in Sources */,
 				66F909BF287D22E7007E2FC6 /* ToolBarButtonImageBuilder+DrawImage.swift in Sources */,
 				OBJ_74 /* CropView+Touches.swift in Sources */,
