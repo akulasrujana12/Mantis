@@ -168,14 +168,16 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         // Curve up to left neck
         path.addQuadCurve(to: CGPoint(x: leftNeckX, y: chinY), controlPoint: CGPoint(x: leftShoulderX + w * 0.05, y: neckControlY))
 
-        // Left neck to left head
-        path.addQuadCurve(to: CGPoint(x: centerX - 40, y: topY + 20), controlPoint: CGPoint(x: leftNeckX - 20, y: chinY - 60))
+        // Left neck to left temple
+        path.addQuadCurve(to: CGPoint(x: centerX - 35, y: topY + 60), controlPoint: CGPoint(x: leftNeckX - 10, y: chinY - 40))
 
-        // Arc over head
-        path.addArc(withCenter: CGPoint(x: centerX, y: topY + 20), radius: 40, startAngle: .pi, endAngle: 0, clockwise: true)
+        // Smooth arc across head (oval head shape)
+        path.addCurve(to: CGPoint(x: centerX + 35, y: topY + 60),
+                      controlPoint1: CGPoint(x: centerX - 10, y: topY),
+                      controlPoint2: CGPoint(x: centerX + 10, y: topY))
 
-        // Right head to right neck
-        path.addQuadCurve(to: CGPoint(x: rightNeckX, y: chinY), controlPoint: CGPoint(x: rightNeckX + 20, y: chinY - 60))
+        // Right temple to right neck
+        path.addQuadCurve(to: CGPoint(x: rightNeckX, y: chinY), controlPoint: CGPoint(x: rightNeckX + 10, y: chinY - 40))
 
         // Curve down to right shoulder
         path.addQuadCurve(to: CGPoint(x: rightShoulderX, y: shoulderY), controlPoint: CGPoint(x: rightShoulderX - w * 0.05, y: neckControlY))
