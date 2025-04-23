@@ -23,6 +23,7 @@
 //  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import UIKit
+import Vision
 
 protocol CropViewDelegate: AnyObject {
     func cropViewDidBecomeResettable(_ cropView: CropViewProtocol)
@@ -39,6 +40,9 @@ final class CropView: UIView {
     var originalImage: UIImage? {
         get { return self._originalImage }
     }
+    
+    // Add property to control resize functionality
+    private var isResizeEnabled = false
     
     let viewModel: CropViewModelProtocol
     
@@ -70,6 +74,10 @@ final class CropView: UIView {
     let cropViewConfig: CropViewConfig
     
     private var flipOddTimes = false
+    
+    // Face detection properties
+    private var faceDetectionRequest: VNDetectFaceRectanglesRequest?
+    private var faceDetectionWorkQueue = DispatchQueue(label: "com.mantis.faceDetection", qos: .userInitiated)
     
     lazy private var activityIndicator: ActivityIndicatorProtocol = {
         let activityIndicator: ActivityIndicatorProtocol
@@ -413,6 +421,52 @@ final class CropView: UIView {
             }
             
             viewModel.cropBoxFrame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+        }
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        
+        guard touches.count == 1, let touch = touches.first else {
+            return
+        }
+        
+        // Disable resize if not enabled
+        if !isResizeEnabled {
+            return
+        }
+        
+        // A resize event has begun by grabbing the crop UI, so notify delegate
+        delegate?.cropViewDidBeginResize(self)
+        
+        if touch.view is RotationControlViewProtocol {
+            return
+        }
+        
+        let point = touch.location(in: self)
+        viewModel.prepareForCrop(byTouchPoint: point)
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        
+        guard touches.count == 1, let touch = touches.first else {
+            return
+        }
+        
+        // Disable resize if not enabled
+        if !isResizeEnabled {
+            return
+        }
+        
+        if touch.view is RotationControlViewProtocol {
+            return
+        }
+        
+        let touchPoint = touch.location(in: self)
+        
+        if touchPoint != viewModel.panOriginPoint {
+            updateCropBoxFrame(withTouchPoint: touchPoint)
         }
     }
 }
@@ -1256,6 +1310,7 @@ extension CropView: CropViewProtocol {
     func update(_ image: UIImage) {
         self.image = image
         imageContainer.update(image)
+        detectFaces()
     }
     
     func update(_ image: UIImage, asOriginal: Bool) {
@@ -1268,6 +1323,71 @@ extension CropView: CropViewProtocol {
         }
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         resetComponents()
+    }
+    
+    private func detectFaces() {
+        guard let cgImage = image.cgImage else { return }
+        
+        let request = VNDetectFaceRectanglesRequest { [weak self] request, error in
+            guard let self = self,
+                  let observations = request.results as? [VNFaceObservation],
+                  !observations.isEmpty else {
+                return
+            }
+            
+            // Get the largest face
+            let largestFace = observations.max { $0.boundingBox.width * $0.boundingBox.height < $1.boundingBox.width * $1.boundingBox.height }
+            
+            if let face = largestFace {
+                DispatchQueue.main.async {
+                    self.adjustCropBoxToFace(face)
+                }
+            }
+        }
+        
+        faceDetectionRequest = request
+        
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        faceDetectionWorkQueue.async {
+            try? handler.perform([request])
+        }
+    }
+    
+    private func adjustCropBoxToFace(_ face: VNFaceObservation) {
+        let imageSize = image.size
+        let faceRect = CGRect(
+            x: face.boundingBox.origin.x * imageSize.width,
+            y: (1 - face.boundingBox.origin.y - face.boundingBox.height) * imageSize.height,
+            width: face.boundingBox.width * imageSize.width,
+            height: face.boundingBox.height * imageSize.height
+        )
+        
+        // Add some padding around the face
+        let padding: CGFloat = 0.5 // 50% padding
+        let paddedRect = faceRect.insetBy(dx: -faceRect.width * padding, dy: -faceRect.height * padding)
+        
+        // Convert face rect to crop view coordinates
+        let cropBoxFrame = imageContainer.convert(paddedRect, to: self)
+        
+        // Update crop box frame
+        viewModel.setCropBoxFrame(by: cropBoxFrame, for: ImageHorizontalToVerticalRatio(ratio: getImageHorizontalToVerticalRatio()))
+        
+        // Adjust UI for new crop
+        let contentRect = getContentBounds()
+        adjustUIForNewCrop(contentRect: contentRect) { [weak self] in
+            guard let self = self else { return }
+            self.delegate?.cropViewDidEndResize(self)
+            self.viewModel.setBetweenOperationStatus()
+            self.cropWorkbenchView.updateMinZoomScale()
+            
+            // Disable resize after face detection
+            self.isResizeEnabled = false
+        }
+    }
+    
+    // Add method to enable/disable resize
+    func setResizeEnabled(_ enabled: Bool) {
+        isResizeEnabled = enabled
     }
 }
 
