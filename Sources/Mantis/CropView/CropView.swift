@@ -23,6 +23,7 @@
 //  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import UIKit
+import Vision
 
 protocol CropViewDelegate: AnyObject {
     func cropViewDidBecomeResettable(_ cropView: CropViewProtocol)
@@ -156,9 +157,73 @@ final class CropView: UIView {
         cropMaskViewManager.adaptMaskTo(match: cropBoxFrame, cropRatio: cropRatio)
     }
     
+    private func detectFaces(in image: UIImage) -> [VNFaceObservation]? {
+        guard let cgImage = image.cgImage else { return nil }
+        
+        let request = VNDetectFaceRectanglesRequest()
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+        
+        do {
+            try handler.perform([request])
+            return request.results as? [VNFaceObservation]
+        } catch {
+            print("Face detection failed: \(error)")
+            return nil
+        }
+    }
+    
+    private func adjustCropBoxForFace(_ face: VNFaceObservation) {
+        let imageSize = image.size
+        let faceRect = face.boundingBox
+        
+        // Convert normalized face rect to image coordinates
+        let faceFrame = CGRect(
+            x: faceRect.origin.x * imageSize.width,
+            y: (1 - faceRect.origin.y - faceRect.height) * imageSize.height,
+            width: faceRect.width * imageSize.width,
+            height: faceRect.height * imageSize.height
+        )
+        
+        // Calculate the desired crop box that centers the face
+        let contentBounds = getContentBounds()
+        let cropBoxSize = viewModel.cropBoxFrame.size
+        
+        // Calculate the center point of the face
+        let faceCenter = CGPoint(
+            x: faceFrame.midX,
+            y: faceFrame.midY
+        )
+        
+        // Calculate the desired crop box position to center the face
+        var newCropBoxFrame = viewModel.cropBoxFrame
+        newCropBoxFrame.origin.x = faceCenter.x - cropBoxSize.width / 2
+        newCropBoxFrame.origin.y = faceCenter.y - cropBoxSize.height / 2
+        
+        // Adjust for hair by moving up 20% if possible
+        let hairAdjustment = cropBoxSize.height * 0.2
+        if newCropBoxFrame.origin.y - hairAdjustment >= 0 {
+            newCropBoxFrame.origin.y -= hairAdjustment
+        } else {
+            newCropBoxFrame.origin.y = 0
+        }
+        
+        // Ensure the crop box stays within image bounds
+        if imageContainer.contains(rect: newCropBoxFrame, fromView: self, tolerance: 0.5) {
+            viewModel.cropBoxFrame = newCropBoxFrame
+        }
+    }
+    
     private func initialRender() {
         setupCropWorkbenchView()
         setupCropAuxiliaryIndicatorView()
+        
+        // Detect faces and adjust crop box if needed
+        if let faces = detectFaces(in: image) {
+            if let firstFace = faces.first {
+                adjustCropBoxForFace(firstFace)
+            }
+        }
+        
         checkImageStatusChanged()
         showFaceGuideOverlay()
     }
