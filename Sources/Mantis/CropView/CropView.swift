@@ -243,9 +243,8 @@ final class CropView: UIView {
     
     private func initialRender() {
         print("[Initial Render] Starting initial render")
-        setupCropWorkbenchView()
         
-        // Get content bounds
+        // Get content bounds first
         let contentBounds = getContentBounds()
         print("[Initial Render] Content bounds: \(contentBounds)")
         
@@ -258,19 +257,24 @@ final class CropView: UIView {
         )
         print("[Initial Render] Setting initial crop box frame: \(initialCropBoxFrame)")
         
+        // Setup components in the correct order
+        setupCropWorkbenchView()
+        
         // Use the view model's method to set the crop box frame
-        viewModel.setCropBoxFrame(by: initialCropBoxFrame, for: ImageHorizontalToVerticalRatio(ratio: 1.0))
+        viewModel.resetCropFrame(by: initialCropBoxFrame)
         
         // Set image container frame
         imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: contentBounds.width, height: contentBounds.width)
         cropWorkbenchView.contentSize = CGSize(width: contentBounds.width, height: contentBounds.width)
+        cropWorkbenchView.resetImageContent(by: initialCropBoxFrame)
         
         // Set initial zoom and content offset
         cropWorkbenchView.zoomScale = 1.0
         cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
         
-        // Setup auxiliary view with content bounds
+        // Setup auxiliary view with the same frame as crop box
         setupCropAuxiliaryIndicatorView(contentBounds: contentBounds)
+        cropAuxiliaryIndicatorView.frame = initialCropBoxFrame
         
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
@@ -297,8 +301,8 @@ final class CropView: UIView {
         cropAuxiliaryIndicatorView.gridHidden = true
         addSubview(cropAuxiliaryIndicatorView)
         
-        // Set the frame to match the crop box
-        cropAuxiliaryIndicatorView.frame = CGRect(x: 0, y: 0, width: contentBounds.width, height: contentBounds.width)
+        // Set the frame to match the view model's crop box frame
+        cropAuxiliaryIndicatorView.frame = viewModel.cropBoxFrame
     }
     
     private func render(by viewStatus: CropViewStatus) {
