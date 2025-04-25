@@ -185,28 +185,21 @@ final class CropView: UIView {
         )
         
         // Calculate the desired crop box that centers the face
-        let contentBounds = getContentBounds()
         let cropBoxSize = viewModel.cropBoxFrame.size
-        
-        // Calculate the center point of the face
         let faceCenter = CGPoint(
             x: faceFrame.midX,
             y: faceFrame.midY
         )
         
-        // Calculate the desired crop box position to center the face
+        // Center the crop box on the face
         var newCropBoxFrame = viewModel.cropBoxFrame
         newCropBoxFrame.origin.x = faceCenter.x - cropBoxSize.width / 2
         newCropBoxFrame.origin.y = faceCenter.y - cropBoxSize.height / 2
-        
-        // Adjust for hair by moving up 20% if possible
-        let hairAdjustment = cropBoxSize.height * 0.2
-        if newCropBoxFrame.origin.y - hairAdjustment >= 0 {
-            newCropBoxFrame.origin.y -= hairAdjustment
-        } else {
-            newCropBoxFrame.origin.y = 0
-        }
-        
+
+        // Move the crop box up by a fixed offset (without changing its size)
+        let verticalOffset: CGFloat = 30 // Adjust this value as needed
+        newCropBoxFrame.origin.y = max(newCropBoxFrame.origin.y - verticalOffset, 0)
+
         // Ensure the crop box stays within image bounds
         if imageContainer.contains(rect: newCropBoxFrame, fromView: self, tolerance: 0.5) {
             viewModel.cropBoxFrame = newCropBoxFrame
@@ -732,179 +725,6 @@ extension CropView {
 
 // MARK: - internal API
 extension CropView {
-    func asyncCrop(_ image: UIImage, completion: @escaping (CropOutput) -> Void) {
-        let cropInfo = getCropInfo()
-        let cropOutput = (image.crop(by: cropInfo), makeTransformation(), cropInfo)
-        
-        DispatchQueue.global(qos: .userInteractive).async {
-            let maskedCropOutput = self.addImageMask(to: cropOutput)
-            DispatchQueue.main.async {
-                self.activityIndicator.stopAnimating()
-                self.activityIndicator.isHidden = true
-                completion(maskedCropOutput)
-            }
-        }
-    }
-    
-    public func makeCropState() -> CropState {
-        return CropState(
-            rotationType: viewModel.rotationType,
-            degrees: viewModel.degrees,
-            aspectRatioLockEnabled: aspectRatioLockEnabled,
-            aspectRato: viewModel.fixedImageRatio,
-            flipOddTimes: flipOddTimes,
-            transformation: makeTransformation()
-        )
-    }
-    
-    func makeTransformation() -> Transformation {
-        Transformation(
-            offset: cropWorkbenchView.contentOffset,
-            rotation: getTotalRadians(),
-            scale: cropWorkbenchView.zoomScale,
-            isManuallyZoomed: isManuallyZoomed,
-            initialMaskFrame: getInitialCropBoxRect(),
-            maskFrame: cropAuxiliaryIndicatorView.frame,
-            cropWorkbenchViewBounds: cropWorkbenchView.bounds,
-            horizontallyFlipped: viewModel.horizontallyFlip,
-            verticallyFlipped: viewModel.verticallyFlip
-        )
-    }
-    
-    func addImageMask(to cropOutput: CropOutput) -> CropOutput {
-        let (croppedImage, transformation, cropInfo) = cropOutput
-        
-        guard let croppedImage = croppedImage else {
-            assertionFailure("croppedImage should not be nil")
-            return cropOutput
-        }
-        
-        switch cropViewConfig.cropShapeType {
-        case .rect,
-                .square,
-                .circle(maskOnly: true),
-                .roundedRect(_, maskOnly: true),
-                .path(_, maskOnly: true),
-                .diamond(maskOnly: true),
-                .heart(maskOnly: true),
-                .polygon(_, _, maskOnly: true):
-            
-            let outputImage: UIImage?
-            if cropViewConfig.cropBorderWidth > 0 {
-                outputImage = croppedImage.rectangleMasked(borderWidth: cropViewConfig.cropBorderWidth,
-                                                           borderColor: cropViewConfig.cropBorderColor)
-            } else {
-                outputImage = croppedImage
-            }
-            
-            return (outputImage, transformation, cropInfo)
-        case .ellipse:
-            return (croppedImage.ellipseMasked(borderWidth: cropViewConfig.cropBorderWidth,
-                                               borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .circle:
-            return (croppedImage.ellipseMasked(borderWidth: cropViewConfig.cropBorderWidth,
-                                               borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .roundedRect(let radiusToShortSide, maskOnly: false):
-            let radius = min(croppedImage.size.width, croppedImage.size.height) * radiusToShortSide
-            return (croppedImage.roundRect(radius,
-                                           borderWidth: cropViewConfig.cropBorderWidth,
-                                           borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .path(let points, maskOnly: false):
-            return (croppedImage.clipPath(points,
-                                          borderWidth: cropViewConfig.cropBorderWidth,
-                                          borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .diamond(maskOnly: false):
-            let points = [CGPoint(x: 0.5, y: 0), CGPoint(x: 1, y: 0.5), CGPoint(x: 0.5, y: 1), CGPoint(x: 0, y: 0.5)]
-            return (croppedImage.clipPath(points,
-                                          borderWidth: cropViewConfig.cropBorderWidth,
-                                          borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .heart(maskOnly: false):
-            return (croppedImage.heart(borderWidth: cropViewConfig.cropBorderWidth,
-                                       borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        case .polygon(let sides, let offset, maskOnly: false):
-            let points = polygonPointArray(sides: sides, originX: 0.5, originY: 0.5, radius: 0.5, offset: 90 + offset)
-            return (croppedImage.clipPath(points,
-                                          borderWidth: cropViewConfig.cropBorderWidth,
-                                          borderColor: cropViewConfig.cropBorderColor),
-                    transformation,
-                    cropInfo)
-        }
-    }
-    
-    func getTotalRadians() -> CGFloat {
-        return viewModel.getTotalRadians()
-    }
-    
-    func setFixedRatioCropBox(zoom: Bool = true, cropBox: CGRect? = nil) {
-        let refCropBox = cropBox ?? getInitialCropBoxRect()
-        let imageHorizontalToVerticalRatio = ImageHorizontalToVerticalRatio(ratio: getImageHorizontalToVerticalRatio())
-        viewModel.setCropBoxFrame(by: refCropBox, for: imageHorizontalToVerticalRatio)
-        
-        let contentRect = getContentBounds()
-        adjustUIForNewCrop(contentRect: contentRect, animation: false, zoom: zoom) { [weak self] in
-            guard let self = self else { return }
-            if self.forceFixedRatio {
-                self.checkForForceFixedRatioFlag = true
-            }
-            self.viewModel.setBetweenOperationStatus()
-        }
-        
-        adaptRotationControlViewToCropBoxIfNeeded()
-        cropWorkbenchView.updateMinZoomScale()
-    }
-    
-    private func flip(isHorizontal: Bool = true, animated: Bool = true) {
-        var scaleX: CGFloat = 1
-        var scaleY: CGFloat = 1
-        
-        if isHorizontal {
-            if viewModel.rotationType.isRotatedByMultiple180 {
-                scaleX = -scaleX
-            } else {
-                scaleY = -scaleY
-            }
-        } else {
-            if viewModel.rotationType.isRotatedByMultiple180 {
-                scaleY = -scaleY
-            } else {
-                scaleX = -scaleX
-            }
-        }
-        
-        func flip() {
-            flipOddTimes.toggle()
-            
-            let flipTransform = cropWorkbenchView.transform.scaledBy(x: scaleX, y: scaleY)
-            let coff: CGFloat = flipOddTimes ? 2 : -2
-            cropWorkbenchView.transform = flipTransform.rotated(by: coff*viewModel.radians)
-            
-            viewModel.degrees *= -1
-            rotationControlView?.updateRotationValue(by: Angle(degrees: viewModel.degrees))
-        }
-        
-        if animated {
-            UIView.animate(withDuration: 0.5) {
-                flip()
-            }
-        } else {
-            flip()
-        }
-    }
-}
-
-extension CropView: CropViewProtocol {
     private func setForceFixedRatio(by presetFixedRatioType: PresetFixedRatioType) {
         switch presetFixedRatioType {
         case .alwaysUsingOnePresetFixedRatio:
