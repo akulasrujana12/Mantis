@@ -1379,6 +1379,22 @@ extension CropView: CropViewProtocol {
         print("Content Bounds: \(getContentBounds())")
         print("===============================\n")
     }
+    
+    func logImageContainerInfo() {
+        print("\n=== Image Container Info ===")
+        print("Frame: \(imageContainer.frame)")
+        print("Bounds: \(imageContainer.bounds)")
+        print("Content Size: \(cropWorkbenchView.contentSize)")
+        print("Content Offset: \(cropWorkbenchView.contentOffset)")
+        print("Zoom Scale: \(cropWorkbenchView.zoomScale)")
+        print("Transform: \(cropWorkbenchView.transform)")
+        print("===============================\n")
+    }
+    
+    func logFullCropState() {
+        logCurrentCropBoxPosition()
+        logImageContainerInfo()
+    }
 }
 
 extension UIActivityIndicatorView: ActivityIndicatorProtocol {
