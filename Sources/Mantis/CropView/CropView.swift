@@ -244,6 +244,7 @@ final class CropView: UIView {
     private func initialRender() {
         print("[Initial Render] Starting initial render")
         setupCropWorkbenchView()
+        setupCropAuxiliaryIndicatorView()
         
         // Get content bounds
         let contentBounds = getContentBounds()
@@ -269,9 +270,6 @@ final class CropView: UIView {
         cropWorkbenchView.zoomScale = 1.0
         cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
         
-        // Setup auxiliary view with content bounds
-        setupCropAuxiliaryIndicatorView(contentBounds: contentBounds)
-        
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
             print("[Initial Render] Found \(faces.count) faces")
@@ -289,13 +287,10 @@ final class CropView: UIView {
         logFullCropState()
     }
     
-    private func setupCropAuxiliaryIndicatorView(contentBounds: CGRect) {
+    private func setupCropAuxiliaryIndicatorView() {
         cropAuxiliaryIndicatorView.isUserInteractionEnabled = false
         cropAuxiliaryIndicatorView.gridHidden = true
         addSubview(cropAuxiliaryIndicatorView)
-        
-        // Set the frame to match the view model's crop box frame
-        cropAuxiliaryIndicatorView.frame = viewModel.cropBoxFrame
     }
     
     private func render(by viewStatus: CropViewStatus) {
