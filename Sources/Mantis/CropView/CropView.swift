@@ -257,7 +257,9 @@ final class CropView: UIView {
             height: contentBounds.width // Square aspect ratio
         )
         print("[Initial Render] Setting initial crop box frame: \(initialCropBoxFrame)")
-        viewModel.cropBoxFrame = initialCropBoxFrame
+        
+        // Use the view model's method to set the crop box frame
+        viewModel.setCropBoxFrame(by: initialCropBoxFrame, for: ImageHorizontalToVerticalRatio(ratio: 1.0))
         
         // Set image container frame
         imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: contentBounds.width, height: contentBounds.width)
