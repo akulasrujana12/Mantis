@@ -246,30 +246,6 @@ final class CropView: UIView {
         setupCropWorkbenchView()
         setupCropAuxiliaryIndicatorView()
         
-        // Get content bounds
-        let contentBounds = getContentBounds()
-        print("[Initial Render] Content bounds: \(contentBounds)")
-        
-        // Set initial crop box frame starting at (0,0)
-        let initialCropBoxFrame = CGRect(
-            x: 0,
-            y: 0,
-            width: contentBounds.width,
-            height: contentBounds.width // Square aspect ratio
-        )
-        print("[Initial Render] Setting initial crop box frame: \(initialCropBoxFrame)")
-        
-        // Set the crop box frame
-        viewModel.cropBoxFrame = initialCropBoxFrame
-        
-        // Set image container frame
-        imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: contentBounds.width, height: contentBounds.width)
-        cropWorkbenchView.contentSize = CGSize(width: contentBounds.width, height: contentBounds.width)
-        
-        // Set initial zoom and content offset
-        cropWorkbenchView.zoomScale = 1.0
-        cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
-        
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
             print("[Initial Render] Found \(faces.count) faces")
