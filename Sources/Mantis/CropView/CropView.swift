@@ -717,9 +717,9 @@ extension CropView {
         if animation {
             UIView.animate(withDuration: 0.25, animations: {
                 updateUI(by: newCropBoxFrame, and: scaleFrame)
-            }, completion: {_ in
+            }, completion: { [weak self] _ in
                 print("[Adjust UI] Animation completed")
-                logFullCropState()
+                self?.logFullCropState()
                 completion()
             })
         } else {
