@@ -267,9 +267,10 @@ final class CropView: UIView {
             cropBoxHeight = cropBoxWidth
         }
         
-        // Center the crop box
+        // Position the crop box to show the face
         let x = contentBounds.origin.x + (contentBounds.width - cropBoxWidth) / 2
-        let y = contentBounds.origin.y + (contentBounds.height - cropBoxHeight) / 2
+        // Adjust y position to be higher up to show the face
+        let y = contentBounds.origin.y + 50 // Adjust this value to position the face properly
         
         let initialCropBoxFrame = CGRect(x: x, y: y, width: cropBoxWidth, height: cropBoxHeight)
         viewModel.cropBoxFrame = initialCropBoxFrame
@@ -279,8 +280,8 @@ final class CropView: UIView {
         cropWorkbenchView.contentSize = CGSize(width: cropBoxWidth, height: cropBoxHeight)
         
         // Set initial zoom and content offset
-        cropWorkbenchView.zoomScale = 1.0028901734104045
-        cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 1.0)
+        cropWorkbenchView.zoomScale = 1.0
+        cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
         
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
