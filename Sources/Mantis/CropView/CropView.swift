@@ -194,14 +194,22 @@ final class CropView: UIView {
             y: faceFrame.midY
         )
         
+        // Add padding around the face (20% of face height)
+        let facePadding = faceFrame.height * 0.2
+        
         // Calculate the desired crop box position to center the face
         var newCropBoxFrame = viewModel.cropBoxFrame
-        newCropBoxFrame.origin.x = faceCenter.x - cropBoxSize.width / 2
-        newCropBoxFrame.origin.y = faceCenter.y - cropBoxSize.height / 2
         
-        // Add fixed vertical offset to move crop box up
-        let verticalOffset: CGFloat = 30 // Fixed offset in points
-        newCropBoxFrame.origin.y -= verticalOffset
+        // Calculate the ideal position to center the face
+        let idealX = faceCenter.x - cropBoxSize.width / 2
+        let idealY = faceCenter.y - cropBoxSize.height / 2 - facePadding
+        
+        // Ensure the crop box stays within image bounds
+        let maxX = imageSize.width - cropBoxSize.width
+        let maxY = imageSize.height - cropBoxSize.height
+        
+        newCropBoxFrame.origin.x = max(0, min(idealX, maxX))
+        newCropBoxFrame.origin.y = max(0, min(idealY, maxY))
         
         // Ensure the crop box stays within image bounds
         if imageContainer.contains(rect: newCropBoxFrame, fromView: self, tolerance: 0.5) {
