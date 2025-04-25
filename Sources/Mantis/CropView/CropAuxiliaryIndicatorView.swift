@@ -216,7 +216,67 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         context.addPath(centerLine.cgPath)
         context.strokePath()
 
-        // === 4. Footer Label ===
+        // === 4. Measurement Lines with Arrows ===
+        func drawArrowLine(start: CGPoint, end: CGPoint, label: String, isVertical: Bool = false) {
+            let arrowPath = UIBezierPath()
+            arrowPath.move(to: start)
+            arrowPath.addLine(to: end)
+            
+            // Draw arrow head
+            let arrowLength: CGFloat = 8
+            let arrowWidth: CGFloat = 4
+            let angle = atan2(end.y - start.y, end.x - start.x)
+            
+            let arrowPoint1 = CGPoint(
+                x: end.x - arrowLength * cos(angle - .pi/6),
+                y: end.y - arrowLength * sin(angle - .pi/6)
+            )
+            let arrowPoint2 = CGPoint(
+                x: end.x - arrowLength * cos(angle + .pi/6),
+                y: end.y - arrowLength * sin(angle + .pi/6)
+            )
+            
+            arrowPath.move(to: end)
+            arrowPath.addLine(to: arrowPoint1)
+            arrowPath.move(to: end)
+            arrowPath.addLine(to: arrowPoint2)
+            
+            context.setLineDash(phase: 0, lengths: [])
+            context.setStrokeColor(UIColor.white.cgColor)
+            context.setLineWidth(1.5)
+            context.addPath(arrowPath.cgPath)
+            context.strokePath()
+            
+            // Draw label
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 12),
+                .foregroundColor: UIColor.white
+            ]
+            let labelSize = label.size(withAttributes: attributes)
+            
+            if isVertical {
+                // Rotate label for vertical measurement
+                context.saveGState()
+                context.translateBy(x: end.x + 10, y: end.y - labelSize.width/2)
+                context.rotate(by: .pi/2)
+                label.draw(at: .zero, withAttributes: attributes)
+                context.restoreGState()
+            } else {
+                label.draw(at: CGPoint(x: (start.x + end.x - labelSize.width)/2, y: start.y - labelSize.height - 5), withAttributes: attributes)
+            }
+        }
+        
+        // Draw horizontal measurement line
+        let horizontalStart = CGPoint(x: 10, y: 20)
+        let horizontalEnd = CGPoint(x: w - 10, y: 20)
+        drawArrowLine(start: horizontalStart, end: horizontalEnd, label: "51mm")
+        
+        // Draw vertical measurement line
+        let verticalStart = CGPoint(x: w - 20, y: 30)
+        let verticalEnd = CGPoint(x: w - 20, y: h - 30)
+        drawArrowLine(start: verticalStart, end: verticalEnd, label: "51mm", isVertical: true)
+
+        // === 5. Footer Label ===
         let footer = "51mmx51mm"
         let attr: [NSAttributedString.Key: Any] = [
             .font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .medium),
@@ -241,6 +301,7 @@ final class CropAuxiliaryIndicatorView: UIView, CropAuxiliaryIndicatorViewProtoc
         layoutEdgeLineHandles()
         layoutAccessibilityHelperViews()
     }
+    
         
     private func layoutOuterLines() {
         borderLine.frame = CGRect(x: -borderThickness,

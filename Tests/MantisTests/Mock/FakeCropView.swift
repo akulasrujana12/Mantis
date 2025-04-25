@@ -9,6 +9,8 @@ import UIKit
 @testable import Mantis
 
 class FakeCropView: UIView, CropViewProtocol {
+    var originalImage: UIImage?
+    
     func applyCropState(with cropState: Mantis.CropState) {
         
     }
