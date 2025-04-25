@@ -260,6 +260,7 @@ final class CropView: UIView {
         checkImageStatusChanged()
         showFaceGuideOverlay()
         print("[Initial Render] Completed initial render")
+        logFullCropState()
     }
     
     private func render(by viewStatus: CropViewStatus) {
@@ -645,10 +646,16 @@ extension CropView {
             return
         }
         
+        print("[Adjust UI] Starting UI adjustment")
+        print("[Adjust UI] Content rect: \(contentRect)")
+        print("[Adjust UI] Current crop box frame: \(viewModel.cropBoxFrame)")
+        
         let scaleX = contentRect.width / viewModel.cropBoxFrame.size.width
         let scaleY = contentRect.height / viewModel.cropBoxFrame.size.height
         
         let scale = min(scaleX, scaleY)
+        
+        print("[Adjust UI] Calculated scale: \(scale)")
         
         let newCropBounds = CGRect(x: 0, y: 0, width: viewModel.cropBoxFrame.width * scale, height: viewModel.cropBoxFrame.height * scale)
         
@@ -657,6 +664,8 @@ extension CropView {
         // calculate the new bounds of scroll view
         let newBoundWidth = abs(cos(radians)) * newCropBounds.size.width + abs(sin(radians)) * newCropBounds.size.height
         let newBoundHeight = abs(sin(radians)) * newCropBounds.size.width + abs(cos(radians)) * newCropBounds.size.height
+        
+        print("[Adjust UI] New bounds - Width: \(newBoundWidth), Height: \(newBoundHeight)")
         
         guard newBoundWidth > 0 && newBoundWidth != .infinity
                 && newBoundHeight > 0 && newBoundHeight != .infinity else {
@@ -668,6 +677,8 @@ extension CropView {
         
         let refContentWidth = abs(cos(radians)) * cropWorkbenchView.contentSize.width + abs(sin(radians)) * cropWorkbenchView.contentSize.height
         let refContentHeight = abs(sin(radians)) * cropWorkbenchView.contentSize.width + abs(cos(radians)) * cropWorkbenchView.contentSize.height
+        
+        print("[Adjust UI] Reference content - Width: \(refContentWidth), Height: \(refContentHeight)")
         
         if scaleFrame.width >= refContentWidth {
             scaleFrame.size.width = refContentWidth
@@ -689,6 +700,8 @@ extension CropView {
         
         let newCropBoxFrame = GeometryHelper.getInscribeRect(fromOutsideRect: contentRect, andInsideRect: viewModel.cropBoxFrame)
         
+        print("[Adjust UI] New crop box frame: \(newCropBoxFrame)")
+        
         func updateUI(by newCropBoxFrame: CGRect, and scaleFrame: CGRect) {
             viewModel.cropBoxFrame = newCropBoxFrame
             
@@ -705,10 +718,13 @@ extension CropView {
             UIView.animate(withDuration: 0.25, animations: {
                 updateUI(by: newCropBoxFrame, and: scaleFrame)
             }, completion: {_ in
+                print("[Adjust UI] Animation completed")
+                logFullCropState()
                 completion()
             })
         } else {
             updateUI(by: newCropBoxFrame, and: scaleFrame)
+            logFullCropState()
             completion()
         }
         
@@ -1358,15 +1374,16 @@ extension CropView: CropViewProtocol {
     }
     
     func update(_ image: UIImage, asOriginal: Bool) {
-        print("[CropView] update called with asOriginal: \(asOriginal)")
+        print("[Update] Updating image with asOriginal: \(asOriginal)")
         self.image = image
         imageContainer.update(image)
         if asOriginal {
-            print("[CropView] Setting originalImage")
+            print("[Update] Setting originalImage")
             self._originalImage = image
         }
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         resetComponents()
+        logFullCropState()
     }
     
     func logCurrentCropBoxPosition() {
