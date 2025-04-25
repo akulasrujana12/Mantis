@@ -158,16 +158,21 @@ final class CropView: UIView {
     }
     
     private func detectFaces(in image: UIImage) -> [VNFaceObservation]? {
-        guard let cgImage = image.cgImage else { return nil }
+        guard let cgImage = image.cgImage else { 
+            print("[Face Detection] Failed to get CGImage from UIImage")
+            return nil 
+        }
         
         let request = VNDetectFaceRectanglesRequest()
         let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
         
         do {
             try handler.perform([request])
-            return request.results as? [VNFaceObservation]
+            let faces = request.results as? [VNFaceObservation]
+            print("[Face Detection] Found \(faces?.count ?? 0) faces")
+            return faces
         } catch {
-            print("Face detection failed: \(error)")
+            print("[Face Detection] Error: \(error)")
             return nil
         }
     }
@@ -175,6 +180,9 @@ final class CropView: UIView {
     private func adjustCropBoxForFace(_ face: VNFaceObservation) {
         let imageSize = image.size
         let faceRect = face.boundingBox
+        
+        print("[Face Adjustment] Image size: \(imageSize)")
+        print("[Face Adjustment] Face rect (normalized): \(faceRect)")
         
         // Convert normalized face rect to image coordinates
         let faceFrame = CGRect(
@@ -184,9 +192,14 @@ final class CropView: UIView {
             height: faceRect.height * imageSize.height
         )
         
+        print("[Face Adjustment] Face frame (pixels): \(faceFrame)")
+        
         // Calculate the desired crop box that centers the face
         let contentBounds = getContentBounds()
         let cropBoxSize = viewModel.cropBoxFrame.size
+        
+        print("[Face Adjustment] Content bounds: \(contentBounds)")
+        print("[Face Adjustment] Crop box size: \(cropBoxSize)")
         
         // Calculate the center point of the face
         let faceCenter = CGPoint(
@@ -194,8 +207,12 @@ final class CropView: UIView {
             y: faceFrame.midY
         )
         
-        // Add padding around the face (20% of face height)
-        let facePadding = faceFrame.height * 0.2
+        print("[Face Adjustment] Face center: \(faceCenter)")
+        
+        // Add padding around the face (30% of face height)
+        let facePadding = faceFrame.height * 0.3
+        
+        print("[Face Adjustment] Face padding: \(facePadding)")
         
         // Calculate the desired crop box position to center the face
         var newCropBoxFrame = viewModel.cropBoxFrame
@@ -204,6 +221,8 @@ final class CropView: UIView {
         let idealX = faceCenter.x - cropBoxSize.width / 2
         let idealY = faceCenter.y - cropBoxSize.height / 2 - facePadding
         
+        print("[Face Adjustment] Ideal position - X: \(idealX), Y: \(idealY)")
+        
         // Ensure the crop box stays within image bounds
         let maxX = imageSize.width - cropBoxSize.width
         let maxY = imageSize.height - cropBoxSize.height
@@ -211,25 +230,36 @@ final class CropView: UIView {
         newCropBoxFrame.origin.x = max(0, min(idealX, maxX))
         newCropBoxFrame.origin.y = max(0, min(idealY, maxY))
         
+        print("[Face Adjustment] Final crop box frame: \(newCropBoxFrame)")
+        
         // Ensure the crop box stays within image bounds
         if imageContainer.contains(rect: newCropBoxFrame, fromView: self, tolerance: 0.5) {
+            print("[Face Adjustment] Setting new crop box frame")
             viewModel.cropBoxFrame = newCropBoxFrame
+        } else {
+            print("[Face Adjustment] Crop box frame is outside image bounds")
         }
     }
     
     private func initialRender() {
+        print("[Initial Render] Starting initial render")
         setupCropWorkbenchView()
         setupCropAuxiliaryIndicatorView()
         
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
+            print("[Initial Render] Found \(faces.count) faces")
             if let firstFace = faces.first {
+                print("[Initial Render] Adjusting crop box for first face")
                 adjustCropBoxForFace(firstFace)
             }
+        } else {
+            print("[Initial Render] No faces detected")
         }
         
         checkImageStatusChanged()
         showFaceGuideOverlay()
+        print("[Initial Render] Completed initial render")
     }
     
     private func render(by viewStatus: CropViewStatus) {
