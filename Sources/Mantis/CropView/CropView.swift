@@ -248,6 +248,7 @@ final class CropView: UIView {
         
         // Get content bounds
         let contentBounds = getContentBounds()
+        print("[Initial Render] Content bounds: \(contentBounds)")
         
         // Set initial crop box frame starting at (0,0)
         let initialCropBoxFrame = CGRect(
@@ -256,6 +257,7 @@ final class CropView: UIView {
             width: contentBounds.width,
             height: contentBounds.width // Square aspect ratio
         )
+        print("[Initial Render] Setting initial crop box frame: \(initialCropBoxFrame)")
         viewModel.cropBoxFrame = initialCropBoxFrame
         
         // Set image container frame
@@ -276,6 +278,9 @@ final class CropView: UIView {
         } else {
             print("[Initial Render] No faces detected")
         }
+        
+        // Verify crop box position after face detection
+        print("[Initial Render] Final crop box frame: \(viewModel.cropBoxFrame)")
         
         checkImageStatusChanged()
         showFaceGuideOverlay()
@@ -374,6 +379,9 @@ final class CropView: UIView {
         cropAuxiliaryIndicatorView.isUserInteractionEnabled = false
         cropAuxiliaryIndicatorView.gridHidden = true
         addSubview(cropAuxiliaryIndicatorView)
+        
+        // Set the frame to match the crop box
+        cropAuxiliaryIndicatorView.frame = CGRect(x: 0, y: 0, width: contentBounds.width, height: contentBounds.width)
     }
     
     /** This function is for correct flips. If rotating angle is exact ±45 degrees,
