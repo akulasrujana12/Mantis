@@ -1368,6 +1368,17 @@ extension CropView: CropViewProtocol {
         viewModel.reset(forceFixedRatio: forceFixedRatio)
         resetComponents()
     }
+    
+    func logCurrentCropBoxPosition() {
+        print("\n=== Current Crop Box Position ===")
+        print("Frame: \(viewModel.cropBoxFrame)")
+        print("Center: \(viewModel.cropBoxFrame.center)")
+        print("Size: \(viewModel.cropBoxFrame.size)")
+        print("Aspect Ratio: \(viewModel.cropBoxFrame.width / viewModel.cropBoxFrame.height)")
+        print("Image Size: \(image.size)")
+        print("Content Bounds: \(getContentBounds())")
+        print("===============================\n")
+    }
 }
 
 extension UIActivityIndicatorView: ActivityIndicatorProtocol {
