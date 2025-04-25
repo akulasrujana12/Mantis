@@ -199,13 +199,9 @@ final class CropView: UIView {
         newCropBoxFrame.origin.x = faceCenter.x - cropBoxSize.width / 2
         newCropBoxFrame.origin.y = faceCenter.y - cropBoxSize.height / 2
         
-        // Adjust for hair by moving up 20% if possible
-        let hairAdjustment = cropBoxSize.height * 0.2
-        if newCropBoxFrame.origin.y - hairAdjustment >= 0 {
-            newCropBoxFrame.origin.y -= hairAdjustment
-        } else {
-            newCropBoxFrame.origin.y = 0
-        }
+        // Add fixed vertical offset to move crop box up
+        let verticalOffset: CGFloat = 30 // Fixed offset in points
+        newCropBoxFrame.origin.y -= verticalOffset
         
         // Ensure the crop box stays within image bounds
         if imageContainer.contains(rect: newCropBoxFrame, fromView: self, tolerance: 0.5) {
