@@ -11,7 +11,7 @@ public struct CropAuxiliaryIndicatorConfig {
     /**
         This value is for how easy to drag crop box. The bigger, the easier.
      */
-    public var cropBoxHotAreaUnit: CGFloat = 32 {
+    public var cropBoxHotAreaUnit: CGFloat = 24 {
         didSet {
             assert(cropBoxHotAreaUnit > 0)
         }

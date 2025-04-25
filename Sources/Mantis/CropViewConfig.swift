@@ -76,7 +76,7 @@ public struct CropViewConfig {
     
     public var showAttachedRotationControlView = true
     
-    public var padding: CGFloat = 14 {
+    public var padding: CGFloat = 8 {
         didSet {
             assert(padding >= 3, "padding is need to be at least 3 in order to show the whole crop box handles")
         }
@@ -90,7 +90,7 @@ public struct CropViewConfig {
     
     public var rotateCropBoxFor90DegreeRotation = true
     
-    public var minimumCropBoxSize: CGFloat = 42 {
+    public var minimumCropBoxSize: CGFloat = 32 {
         didSet {
             assert(minimumCropBoxSize >= 4)
         }
