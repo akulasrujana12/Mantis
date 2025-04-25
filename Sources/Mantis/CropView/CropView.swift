@@ -244,7 +244,6 @@ final class CropView: UIView {
     private func initialRender() {
         print("[Initial Render] Starting initial render")
         setupCropWorkbenchView()
-        setupCropAuxiliaryIndicatorView()
         
         // Get content bounds
         let contentBounds = getContentBounds()
@@ -269,6 +268,9 @@ final class CropView: UIView {
         // Set initial zoom and content offset
         cropWorkbenchView.zoomScale = 1.0
         cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
+        
+        // Setup auxiliary view with content bounds
+        setupCropAuxiliaryIndicatorView(contentBounds: contentBounds)
         
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
