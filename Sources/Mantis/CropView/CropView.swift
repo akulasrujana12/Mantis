@@ -249,10 +249,10 @@ final class CropView: UIView {
         // Get content bounds
         let contentBounds = getContentBounds()
         
-        // Set initial crop box frame with higher y position
+        // Set initial crop box frame starting at (0,0)
         let initialCropBoxFrame = CGRect(
-            x: contentBounds.origin.x,
-            y: contentBounds.origin.y + 20, // Start higher up
+            x: 0,
+            y: 0,
             width: contentBounds.width,
             height: contentBounds.width // Square aspect ratio
         )
