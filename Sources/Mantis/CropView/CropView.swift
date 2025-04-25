@@ -244,7 +244,6 @@ final class CropView: UIView {
     private func initialRender() {
         print("[Initial Render] Starting initial render")
         setupCropWorkbenchView()
-        setupCropAuxiliaryIndicatorView()
         
         // Get content bounds
         let contentBounds = getContentBounds()
@@ -268,6 +267,9 @@ final class CropView: UIView {
         cropWorkbenchView.zoomScale = 1.0
         cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
         
+        // Setup auxiliary view with content bounds
+        setupCropAuxiliaryIndicatorView(contentBounds: contentBounds)
+        
         // Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
             print("[Initial Render] Found \(faces.count) faces")
@@ -286,6 +288,15 @@ final class CropView: UIView {
         showFaceGuideOverlay()
         print("[Initial Render] Completed initial render")
         logFullCropState()
+    }
+    
+    private func setupCropAuxiliaryIndicatorView(contentBounds: CGRect) {
+        cropAuxiliaryIndicatorView.isUserInteractionEnabled = false
+        cropAuxiliaryIndicatorView.gridHidden = true
+        addSubview(cropAuxiliaryIndicatorView)
+        
+        // Set the frame to match the crop box
+        cropAuxiliaryIndicatorView.frame = CGRect(x: 0, y: 0, width: contentBounds.width, height: contentBounds.width)
     }
     
     private func render(by viewStatus: CropViewStatus) {
@@ -373,15 +384,6 @@ final class CropView: UIView {
         if cropViewConfig.minimumZoomScale > 1 {
             cropWorkbenchView.zoomScale = cropViewConfig.minimumZoomScale
         }
-    }
-    
-    private func setupCropAuxiliaryIndicatorView() {
-        cropAuxiliaryIndicatorView.isUserInteractionEnabled = false
-        cropAuxiliaryIndicatorView.gridHidden = true
-        addSubview(cropAuxiliaryIndicatorView)
-        
-        // Set the frame to match the crop box
-        cropAuxiliaryIndicatorView.frame = CGRect(x: 0, y: 0, width: contentBounds.width, height: contentBounds.width)
     }
     
     /** This function is for correct flips. If rotating angle is exact ±45 degrees,
