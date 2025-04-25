@@ -257,26 +257,35 @@ final class CropView: UIView {
         )
         print("[Initial Render] Setting initial crop box frame: \(initialCropBoxFrame)")
         
-        // Setup components in the correct order
+        // 1. Setup crop mask view manager first
+        print("[Initial Render] Setting up crop mask view manager")
+        cropMaskViewManager.setup(in: self, cropRatio: CGFloat(getImageHorizontalToVerticalRatio()))
+        
+        // 2. Setup workbench view
+        print("[Initial Render] Setting up workbench view")
         setupCropWorkbenchView()
         
-        // Use the view model's method to set the crop box frame
-        viewModel.resetCropFrame(by: initialCropBoxFrame)
-        
-        // Set image container frame
+        // 3. Set up image container and workbench
+        print("[Initial Render] Setting up image container")
         imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: contentBounds.width, height: contentBounds.width)
         cropWorkbenchView.contentSize = CGSize(width: contentBounds.width, height: contentBounds.width)
+        
+        // 4. Reset the crop frame
+        print("[Initial Render] Resetting crop frame to: \(initialCropBoxFrame)")
+        viewModel.resetCropFrame(by: initialCropBoxFrame)
         cropWorkbenchView.resetImageContent(by: initialCropBoxFrame)
         
-        // Set initial zoom and content offset
+        // 5. Set initial zoom and content offset
+        print("[Initial Render] Setting zoom and offset")
         cropWorkbenchView.zoomScale = 1.0
         cropWorkbenchView.contentOffset = CGPoint(x: 0.0, y: 0.0)
         
-        // Setup auxiliary view with the same frame as crop box
+        // 6. Setup auxiliary view with the same frame as crop box
+        print("[Initial Render] Setting up auxiliary view")
         setupCropAuxiliaryIndicatorView(contentBounds: contentBounds)
         cropAuxiliaryIndicatorView.frame = initialCropBoxFrame
         
-        // Detect faces and adjust crop box if needed
+        // 7. Detect faces and adjust crop box if needed
         if let faces = detectFaces(in: image) {
             print("[Initial Render] Found \(faces.count) faces")
             if let firstFace = faces.first {
@@ -289,6 +298,7 @@ final class CropView: UIView {
         
         // Verify crop box position after face detection
         print("[Initial Render] Final crop box frame: \(viewModel.cropBoxFrame)")
+        print("[Initial Render] Auxiliary view frame: \(cropAuxiliaryIndicatorView.frame)")
         
         checkImageStatusChanged()
         showFaceGuideOverlay()
@@ -556,10 +566,24 @@ final class CropView: UIView {
 // MARK: - Adjust UI
 extension CropView {
     func resetComponents() {
+        // First set the initial crop box frame at (0,0)
+        let contentBounds = getContentBounds()
+        let initialCropBoxFrame = CGRect(
+            x: 0,
+            y: 0,
+            width: contentBounds.width,
+            height: contentBounds.width
+        )
+        
+        // Reset the crop frame first
+        viewModel.resetCropFrame(by: initialCropBoxFrame)
+        
+        // Then setup the mask
         cropMaskViewManager.setup(in: self, cropRatio: CGFloat(getImageHorizontalToVerticalRatio()))
         
-        viewModel.resetCropFrame(by: getInitialCropBoxRect())
+        // Reset the workbench view
         cropWorkbenchView.resetImageContent(by: viewModel.cropBoxFrame)
+        cropAuxiliaryIndicatorView.frame = initialCropBoxFrame
         cropAuxiliaryIndicatorView.bringSelfToFront()
         
         setupRotationDialIfNeeded()
