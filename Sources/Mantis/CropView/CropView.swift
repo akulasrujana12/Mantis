@@ -246,38 +246,21 @@ final class CropView: UIView {
         setupCropWorkbenchView()
         setupCropAuxiliaryIndicatorView()
         
-        // Calculate crop box dimensions based on aspect ratio
+        // Get content bounds
         let contentBounds = getContentBounds()
-        let aspectRatio = viewModel.fixedImageRatio
-        var cropBoxWidth: CGFloat
-        var cropBoxHeight: CGFloat
         
-        if aspectRatio > 0 {
-            // For specific aspect ratios like 35mm x 45mm (0.778:1)
-            if contentBounds.width * aspectRatio <= contentBounds.height {
-                cropBoxWidth = contentBounds.width
-                cropBoxHeight = contentBounds.width * aspectRatio
-            } else {
-                cropBoxHeight = contentBounds.height
-                cropBoxWidth = contentBounds.height / aspectRatio
-            }
-        } else {
-            // Default to square (1:1) if no specific ratio
-            cropBoxWidth = min(contentBounds.width, contentBounds.height)
-            cropBoxHeight = cropBoxWidth
-        }
-        
-        // Position the crop box to show the face
-        let x = contentBounds.origin.x + (contentBounds.width - cropBoxWidth) / 2
-        // Adjust y position to be higher up to show the face
-        let y = contentBounds.origin.y + 50 // Adjust this value to position the face properly
-        
-        let initialCropBoxFrame = CGRect(x: x, y: y, width: cropBoxWidth, height: cropBoxHeight)
+        // Set initial crop box frame with higher y position
+        let initialCropBoxFrame = CGRect(
+            x: contentBounds.origin.x,
+            y: contentBounds.origin.y + 20, // Start higher up
+            width: contentBounds.width,
+            height: contentBounds.width // Square aspect ratio
+        )
         viewModel.cropBoxFrame = initialCropBoxFrame
         
-        // Set image container frame and content size
-        imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: cropBoxWidth, height: cropBoxHeight)
-        cropWorkbenchView.contentSize = CGSize(width: cropBoxWidth, height: cropBoxHeight)
+        // Set image container frame
+        imageContainer.frame = CGRect(x: 0.0, y: 0.0, width: contentBounds.width, height: contentBounds.width)
+        cropWorkbenchView.contentSize = CGSize(width: contentBounds.width, height: contentBounds.width)
         
         // Set initial zoom and content offset
         cropWorkbenchView.zoomScale = 1.0
